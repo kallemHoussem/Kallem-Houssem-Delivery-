@@ -31,15 +31,18 @@ document.getElementById('b').addEventListener('click',async function(){
   }catch(e){line('   erreur : '+e.message);}
   line('');
   line('2) Écriture dans Firestore');
-  try{
-    var r2=await fetch('https://firestore.googleapis.com/v1/projects/'+P+'/databases/(default)/documents/orders?key='+K,{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({fields:{kind:{stringValue:'test'},nom:{stringValue:'Test'},adr:{stringValue:'Test'},text:{stringValue:'TEST – à annuler'},total:{doubleValue:0},status:{stringValue:'new'},ts:{timestampValue:new Date().toISOString()}}})
-    });
-    var j=await r2.json();
-    line('   HTTP '+r2.status);
-    line(j.error?'   ❌ '+j.error.status+' : '+j.error.message:'   ✅ commande test créée');
-  }catch(e){line('   erreur : '+e.message);}
+  var ids=['(default)','default'];
+  for(var k=0;k<ids.length;k++){
+    line('   Base "'+ids[k]+'" :');
+    try{
+      var r2=await fetch('https://firestore.googleapis.com/v1/projects/'+P+'/databases/'+encodeURIComponent(ids[k])+'/documents/orders?key='+K,{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({fields:{kind:{stringValue:'test'},nom:{stringValue:'Test'},adr:{stringValue:'Test'},text:{stringValue:'TEST – à annuler'},total:{doubleValue:0},status:{stringValue:'new'},ts:{timestampValue:new Date().toISOString()}}})
+      });
+      var j=await r2.json();
+      line('     HTTP '+r2.status+(j.error?' ❌ '+j.error.status+' : '+String(j.error.message).slice(0,90):' ✅ commande test créée'));
+    }catch(e){line('     erreur : '+e.message);}
+  }
 });
 </script>
 </body>
