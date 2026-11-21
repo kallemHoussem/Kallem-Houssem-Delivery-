@@ -40,6 +40,10 @@ input,select,textarea{width:100%;padding:12px;border-radius:12px;border:0;font:i
 .oc pre{white-space:pre-wrap;word-break:break-word;font:inherit;margin:6px 0}
 .oc .st{font-size:.75rem;opacity:.8}
 .oc .ac{display:grid;grid-template-columns:2fr 1fr;gap:8px;margin-top:6px}
+.chart{display:flex;align-items:flex-end;gap:4px;height:120px;margin-bottom:6px}
+.chart .bar{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%}
+.chart .bar i{display:block;width:100%;background:var(--acc);border-radius:4px 4px 0 0;min-height:2px}
+.chart .bar small{font-size:.55rem;opacity:.7}
 .note{font-size:.8rem;opacity:.8;margin:6px 0}
 textarea{min-height:70px}
 </style>
@@ -137,7 +141,7 @@ function periodChips(){
 function summary(){
   var L=db.liv.filter(function(e){return inP(e.d);}),F=db.fuel.filter(function(e){return inP(e.d);}),C=db.chg.filter(function(e){return inP(e.d);});
   var rev=sum(L,'m'),fu=sum(F,'m'),ch=sum(C,'m'),net=rev-fu-ch,n=L.length,co=conso();
-  var h='<h1>📊 Résumé</h1><div class="note">☁️ Synchronisé : téléphone et PC voient les mêmes données.</div>'+(sync==='err'?'<div class="al r">⚠️ '+esc(msg)+'</div>':'')+vidAlert()+periodChips()+'<div class="g">'+
+  var h='<h1>📈 Rapport</h1><div class="note">☁️ Synchronisé : téléphone et PC voient les mêmes données.</div>'+(sync==='err'?'<div class="al r">⚠️ '+esc(msg)+'</div>':'')+bkAlert()+vidAlert()+periodChips()+'<div class="g">'+
    '<div class="k"><small>Livraisons</small><b>'+n+'</b></div>'+
    '<div class="k"><small>Revenus</small><b>'+dt(rev)+'</b></div>'+
    '<div class="k"><small>⛽ Carburant</small><b>'+dt(fu)+'</b></div>'+
@@ -147,9 +151,15 @@ function summary(){
    '<div class="k"><small>Net / livraison</small><b>'+(n?dt(net/n):'–')+'</b></div>'+
    '<div class="k"><small>Conso moyenne</small><b>'+(co?f(co.l100)+' L/100':'–')+'</b></div>'+
    '<div class="k"><small>Carburant / km</small><b>'+(co?f(co.ckm)+' DT':'–')+'</b></div></div>';
+  var dys=[],mx=1;for(var q=13;q>=0;q--){var dd=new Date();dd.setDate(dd.getDate()-q);var kk=iso(dd);var vv=sum(db.liv.filter(function(e){return e.d===kk;}),'m');dys.push([kk,vv]);if(vv>mx)mx=vv;}
+  h+='<h2>Revenus – 14 derniers jours</h2><div class="chart">'+dys.map(function(x){return'<div class="bar"><i style="height:'+Math.round(x[1]/mx*100)+'%"></i><small>'+x[0].slice(8)+'</small></div>';}).join('')+'</div>';
+  var by={};C.forEach(function(e){by[e.t]=(by[e.t]||0)+e.m;});
+  if(Object.keys(by).length)h+='<h2>Charges par type</h2>'+Object.keys(by).map(function(t){return'<div class="li"><div>'+esc(t)+'</div><b>'+dt(by[t])+'</b></div>';}).join('');
+  h+='<h2>Commandes du site (50 dernières)</h2><div class="g"><div class="k"><small>Reçues</small><b>'+orders.length+'</b></div><div class="k"><small>Livrées</small><b>'+orders.filter(function(o){return o.status==='done';}).length+'</b></div><div class="k"><small>En cours</small><b>'+orders.filter(function(o){return o.status==='accepted'||o.status==='new';}).length+'</b></div><div class="k"><small>Annulées</small><b>'+orders.filter(function(o){return o.status==='cancel';}).length+'</b></div></div>';
+  h+='<button class="btn s" style="margin-top:12px" onclick="shareRep()">📤 Envoyer ce rapport sur WhatsApp</button>';
   h+='<h2>Réglages</h2><div class="box"><label>Vidange tous les (km)</label><input id="sv" type="number" inputmode="numeric" value="'+db.set.vid+'"><button class="btn s" onclick="setVid()">Enregistrer</button>'+
    '</div>';
-  h+='<div class="box"><button class="btn s" onclick="logout()">🚪 Se déconnecter</button><label>Sauvegarde</label><button class="btn s" onclick="backup()">📋 Copier la sauvegarde</button><textarea id="bk" placeholder="Pour restaurer : collez la sauvegarde ici"></textarea><button class="btn s" onclick="restore()">♻️ Restaurer</button></div>';
+  h+='<div class="box"><button class="btn s" onclick="logout()">🚪 Se déconnecter</button><label>Sauvegarde</label><button class="btn s" onclick="backupAll()">💾 Sauvegarde complète (fichier)</button><button class="btn s" onclick="csvLiv()">📄 Exporter les livraisons (CSV)</button><button class="btn s" onclick="backup()">📋 Copier la sauvegarde</button><textarea id="bk" placeholder="Pour restaurer : collez la sauvegarde ici"></textarea><button class="btn s" onclick="restore()">♻️ Restaurer</button></div>';
   return h+'<p class="note">'+esc(msg)+'</p><p class="note">Faites une sauvegarde de temps en temps (copie dans WhatsApp / Notes).</p>';
 }
 function list(a,fn,key){
@@ -178,6 +188,21 @@ function chgV(){
    periodChips()+'<div class="note">Total : '+dt(sum(C,'m'))+'</div>'+
    list(C,function(e){return'<b>'+esc(e.t)+' · '+dt(e.m)+'</b> · '+esc(e.d)+'<small>'+esc(e.n||'')+(e.odo?' · '+f(e.odo)+' km':'')+'</small>';},'chg');
 }
+function repData(){var L=db.liv.filter(function(e){return inP(e.d);}),F=db.fuel.filter(function(e){return inP(e.d);}),C=db.chg.filter(function(e){return inP(e.d);});var rev=sum(L,'m'),fu=sum(F,'m'),ch=sum(C,'m');return{n:L.length,rev:rev,fu:fu,ch:ch,net:rev-fu-ch};}
+function shareRep(){var r=repData(),P={jour:'Aujourd’hui','7j':'7 derniers jours',mois:'Ce mois',tout:'Total'}[pr];
+  var t='📈 Rapport – '+P+'\n🛵 Livraisons : '+r.n+'\n💰 Revenus : '+dt(r.rev)+'\n⛽ Carburant : '+dt(r.fu)+'\n🔧 Charges : '+dt(r.ch)+'\n✅ Bénéfice net : '+dt(r.net)+(r.n?'\n📊 Moyenne / livraison : '+dt(r.rev/r.n):'');
+  window.open('https://wa.me/?text='+encodeURIComponent(t),'_blank');}
+function dl(name,mime,text){var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:mime}));a.download=name;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},1000);}
+async function backupAll(){
+  try{var r=await fs('POST',':runQuery',{structuredQuery:{from:[{collectionId:'orders'}],orderBy:[{field:{fieldPath:'ts'},direction:'DESCENDING'}],limit:500}});
+    var all=(r||[]).filter(function(x){return x.document;}).map(function(x){var f=x.document.fields||{},o={};Object.keys(f).forEach(function(k){o[k]=gv(f[k]);});o.id=x.document.name.split('/').pop();return o;});
+    dl('kallem-houssem-sauvegarde-'+today()+'.json','application/json',JSON.stringify({date:today(),gestion:db,commandes:all},null,1));
+    try{localStorage.setItem('kh_bk',today());}catch(e){}msg='Sauvegarde téléchargée ✅';render();
+  }catch(e){alert('Échec : '+e.message);}
+}
+function csvLiv(){var rows=['date;gain_DT;km;note'].concat(dsort(db.liv).map(function(e){return[e.d,e.m,e.km||'',String(e.n||'').replace(/[;\n]/g,' ')].join(';');}));dl('livraisons-'+today()+'.csv','text/csv;charset=utf-8','\ufeff'+rows.join('\n'));}
+function bkAlert(){var b='';try{b=localStorage.getItem('kh_bk')||'';}catch(e){}var d=b?Math.floor((Date.now()-new Date(b).getTime())/864e5):999;
+  return d>30?'<div class="al">💾 '+(b?'Dernière sauvegarde il y a '+d+' jours.':'Aucune sauvegarde.')+' Faites-en une (Réglages, en bas).</div>':'';}
 function loginV(){
   return'<h1>🔒 Gestion – Houssem</h1><div class="box"><label>Email</label><input id="em" type="email" autocomplete="username"><label>Mot de passe</label><input id="pw" type="password" autocomplete="current-password"><button class="btn" onclick="login()">Se connecter</button></div><p class="note">'+esc(msg)+'</p>';
 }
@@ -187,7 +212,7 @@ function cmdV(){
     var t=o.ts?new Date(o.ts).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'';
     var st=o.status==='done'?'✅ Livrée':o.status==='cancel'?'✖ Annulée':o.status==='accepted'?'🛵 En cours':'🆕 Nouvelle';
     var bt=o.status==='new'?'<div class="ac"><button class="btn" data-oa="'+o.id+'">✅ Accepter</button><button class="btn s" data-oc="'+o.id+'">✖</button></div>':o.status==='accepted'?'<div class="ac"><button class="btn" data-od="'+o.id+'">🛵 Livrée</button><button class="btn s" data-oc="'+o.id+'">✖</button></div>':'';
-    return'<div class="oc"><div class="st">'+st+' · '+esc(t)+' · '+esc(o.kind==='colis'?'📦 Colis':'🛒 Commande')+'</div>'+(o.tel?'<div class="st">📞 <a href="tel:'+esc(o.tel)+'" style="color:#5fd0ff">'+esc(o.tel)+'</a></div>':'')+(/^https:\/\/maps\.google\.com\//.test(o.maps)?'<div class="st"><a href="'+esc(o.maps)+'" target="_blank" rel="noopener" style="color:#5fd0ff">📍 Ouvrir Google Maps</a></div>':'')+'<pre>'+esc(o.text)+'</pre>'+bt+'</div>';
+    return'<div class="oc"><div class="st">'+st+(/À APPELER/.test(o.text)?' · 📞 À APPELER':'')+' · '+esc(t)+' · '+esc(o.kind==='colis'?'📦 Colis':'🛒 Commande')+'</div>'+(o.tel?'<div class="st">📞 <a href="tel:'+esc(o.tel)+'" style="color:#5fd0ff">'+esc(o.tel)+'</a></div>':'')+(/^https:\/\/maps\.google\.com\//.test(o.maps)?'<div class="st"><a href="'+esc(o.maps)+'" target="_blank" rel="noopener" style="color:#5fd0ff">📍 Ouvrir Google Maps</a></div>':'')+'<pre>'+esc(o.text)+'</pre>'+bt+'</div>';
   }
   return'<h1>🔔 Commandes</h1><button class="btn s" onclick="refresh()" style="margin-bottom:12px">🔄 Actualiser</button>'+(msg?'<div class="al">'+esc(msg)+'</div>':'')+
    '<h2>🆕 Nouvelles ('+N.length+')</h2>'+(N.length?N.map(card).join(''):'<div class="note">Aucune nouvelle commande.</div>')+
@@ -198,7 +223,7 @@ async function setSt(id,st){await fs('PATCH','/orders/'+id+'?updateMask.fieldPat
 function waNum(t){var d=String(t||'').replace(/\D/g,'');if(d.indexOf('00')===0)d=d.slice(2);if(d.length===8)d='216'+d;return d;}
 async function orderAccept(id){
   var o=orders.filter(function(x){return x.id===id;})[0];if(!o)return;
-  if(o.tel&&waNum(o.tel).length>=10){
+  if(/À APPELER/.test(o.text)){alert('Client sans WhatsApp : appelez-le au '+(o.tel||'(numéro indiqué)'));}else if(o.tel&&waNum(o.tel).length>=10){
     window.open('https://wa.me/'+waNum(o.tel)+'?text='+encodeURIComponent('Bonjour '+(o.nom||'')+' 👋\nVotre commande est acceptée ✅\nNotre livreur la prépare et arrive bientôt 🛵\n— Kallem Houssem Livraison'),'_blank');
   }else alert('Pas de numéro pour ce client : la commande est acceptée sans message.');
   try{await setSt(id,'accepted');await refresh();}catch(e){alert('Échec : '+e.message);}
@@ -212,7 +237,7 @@ async function orderDone(id){
 }
 async function orderCancel(id){if(!confirm('Annuler cette commande ?'))return;try{await setSt(id,'cancel');await refresh();}catch(e){alert('Échec : '+e.message);}}
 function nav(){
-  var T=[['cmd','🔔','Commandes'],['sum','📊','Résumé'],['liv','🛵','Livraisons'],['fuel','⛽','Carburant'],['chg','🔧','Charges']];
+  var T=[['cmd','🔔','Commandes'],['sum','📈','Rapport'],['liv','🛵','Livraisons'],['fuel','⛽','Carburant'],['chg','🔧','Charges']];
   return'<nav class="nv">'+T.map(function(t){return'<button data-t="'+t[0]+'" class="'+(tab===t[0]?'on':'')+'">'+t[1]+(t[0]==='cmd'&&newN()?'<b class="bd">'+newN()+'</b>':'')+'<small>'+t[2]+'</small></button>';}).join('')+'</nav>';
 }
 function render(){
