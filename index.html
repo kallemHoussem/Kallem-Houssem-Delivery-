@@ -191,6 +191,14 @@ function src(id){return R.filter(function(r){return r.id===id;})[0];}
 function count(){var c=0;for(var k in cart)c+=cart[k];return c;}
 function total(){var t=0,u=false;for(var k in cart){var p=k.split('|'),it=src(p[0]).items[p[1]];if(it.p==null)u=true;else t+=it.p*cart[k];}return{t:t,u:u};}
 function lab(r){return r.id==='mkt'?'🛒 Supermarché':r.id==='ksk'?'🏪 Kiosque':'🍴 '+r.name;}
+var FB={p:'kallem-houssem-gestion',k:'AIzaSyAt7Wn3ywa4KFyTy9LP7Iw1TI0oKRSMSwI'};
+var FSBASE='https://firestore.googleapis.com/v1/projects/'+FB.p+'/databases/(default)/documents';
+function logOrder(kind,text,nom,adr,total,tel,maps){
+  try{
+    if(window.KH&&KH.user){KH.order({kind:kind,nom:String(nom||'').slice(0,100),adr:String(adr||'').slice(0,200),text:String(text).slice(0,2500),total:+total||0,status:'new',tel:String(tel||'').slice(0,30),maps:String(maps||'').slice(0,200)}).catch(function(){});return;}
+    fetch(FSBASE+'/orders?key='+FB.k,{method:'POST',headers:{'Content-Type':'application/json'},keepalive:true,body:JSON.stringify({fields:{kind:{stringValue:kind},nom:{stringValue:String(nom||'').slice(0,100)},adr:{stringValue:String(adr||'').slice(0,200)},text:{stringValue:String(text).slice(0,2500)},total:{doubleValue:+total||0},status:{stringValue:'new'},ts:{timestampValue:new Date().toISOString()}}})}).catch(function(){});
+  }catch(e){}
+}
 function wa(m){return'https://wa.me/'+PHONE+'?text='+encodeURIComponent(m);}
 var ageOk=false,sq='';
 function nz(t){return String(t).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');}
@@ -199,9 +207,53 @@ function chg(rid,i,d){
   var k=rid+'|'+i;cart[k]=(cart[k]||0)+d;if(cart[k]<=0)delete cart[k];render(true);
 }
 function go(v,id){view=v;if(id)vr=id;render();window.scrollTo(0,0);if(v==='search'){var e=document.getElementById('sq');if(e)e.focus();}}
+var accMode='in',accMsg='',gps=null;
+function account(){
+  var K=window.KH,h=back('home')+'<h2>👤 Mon compte</h2></div>';
+  if(!K)return h+'<div class="note">Connexion indisponible pour le moment. Vous pouvez commander sans compte.</div>';
+  if(!K.ready)return h+'<div class="note">Chargement…</div>';
+  if(!K.user){
+    return h+'<div class="box"><div class="chips"><button class="chip'+(accMode==='in'?' on':'')+'" data-am="in">Connexion</button><button class="chip'+(accMode==='up'?' on':'')+'" data-am="up">Créer un compte</button></div>'+
+     '<label>Email</label><input id="ae" type="email" autocomplete="username"><label>Mot de passe</label><input id="ap" type="password" autocomplete="'+(accMode==='in'?'current-password':'new-password')+'">'+
+     '<button class="send" style="margin:4px 0" onclick="accGo()">'+(accMode==='in'?'Se connecter':'Créer mon compte')+'</button>'+
+     (accMode==='in'?'<button class="again" style="margin:0" onclick="accReset()">Mot de passe oublié ?</button>':'')+
+     '<button class="again" style="margin:0" onclick="accGoogle()">🔵 Continuer avec Google</button></div><p class="note">'+esc(accMsg)+'</p>'+
+     '<p class="note">Le compte est facultatif : vous pouvez commander sans compte. Il sert à enregistrer vos infos une seule fois.</p>';
+  }
+  var P=K.profile||{};
+  return h+'<div class="note" style="text-align:left">Connecté : '+esc(K.user.email||'')+'</div><div class="box"><label>Nom</label><input id="pn" value="'+esc(P.nom||'')+'" autocomplete="name"><label>Téléphone (WhatsApp)</label><input id="pt" type="tel" value="'+esc(P.tel||'')+'" autocomplete="tel"><label>Adresse / repère</label><input id="pa" value="'+esc(P.adr||'')+'">'+
+   '<button class="again" style="margin:0" onclick="accGps()">📍 Utiliser ma position actuelle</button><div class="note" id="gpsn">'+(P.lat?'Position enregistrée ✅':'')+'</div>'+
+   '<label style="display:flex;gap:8px;align-items:flex-start"><input id="pc" type="checkbox" style="width:auto;margin-top:3px" '+(P.ok?'checked':'')+'><span>J’accepte que mes données (nom, téléphone, adresse, position) soient enregistrées pour mes livraisons.</span></label>'+
+   '<button class="send" style="margin:4px 0" onclick="accSave()">Enregistrer</button></div><p class="note">'+esc(accMsg)+'</p><button class="again" onclick="accOut()">Se déconnecter</button><h2 style="font-size:1rem">Mes commandes</h2><div id="mo" class="note">Chargement…</div>';
+}
+function loadMo(){
+  KH.orders().then(function(a){var e=document.getElementById('mo');if(!e)return;
+    e.innerHTML=a.length?a.map(function(o){var d=o.ts&&o.ts.seconds?new Date(o.ts.seconds*1000).toLocaleDateString('fr-FR'):'';var st=o.status==='done'?'✅ Livrée':o.status==='cancel'?'✖ Annulée':'🕐 En cours';
+      return'<div class="item" style="display:block"><small class="sr">'+esc(d)+' · '+st+'</small><div style="white-space:pre-wrap;font-size:.85rem">'+esc(o.text||'')+'</div></div>';}).join(''):'Aucune commande pour le moment.';});
+}
+async function accGo(){var em=document.getElementById('ae').value.trim(),pw=document.getElementById('ap').value;accMsg='…';render();
+  accMsg=(accMode==='in'?await KH.signIn(em,pw):await KH.signUp(em,pw));render();}
+async function accReset(){var em=document.getElementById('ae').value.trim();if(!em){alert('Entrez votre email');return;}
+  accMsg=(await KH.reset(em))||'Email de réinitialisation envoyé ✅';render();}
+async function accGoogle(){accMsg=await KH.google();render();}
+function accOut(){KH.out();}
+function accGps(){
+  var n=document.getElementById('gpsn');if(!navigator.geolocation){n.textContent='Position indisponible';return;}
+  n.textContent='Recherche de la position…';
+  navigator.geolocation.getCurrentPosition(function(p){gps={lat:+p.coords.latitude.toFixed(6),lng:+p.coords.longitude.toFixed(6)};n.textContent='Position trouvée ✅ (pensez à Enregistrer)';},function(){n.textContent='Position refusée ou indisponible';},{enableHighAccuracy:true,timeout:15000});
+}
+async function accSave(){
+  var P={nom:val('pn'),tel:val('pt'),adr:val('pa'),ok:document.getElementById('pc').checked};
+  if(!P.nom||!P.tel){alert('Nom et téléphone obligatoires');return;}
+  if(!P.ok){alert('Veuillez accepter l’enregistrement de vos données');return;}
+  var old=KH.profile||{},g=gps||(old.lat?{lat:old.lat,lng:old.lng}:null);if(g){P.lat=g.lat;P.lng=g.lng;}
+  accMsg=(await KH.save(P))||'Enregistré ✅';render();
+}
+function onAuth(){accMsg='';if(view==='account'||view==='cart')render();}
+function val(id){return document.getElementById(id).value.trim();}
 function nav(){
-  var a=view==='search'?'s':view==='cart'?'c':'h',n=count();
-  return'<nav class="nv"><button data-g="home" class="'+(a==='h'?'on':'')+'">🏠<small>Accueil</small></button><button data-g="search" class="'+(a==='s'?'on':'')+'">🔍<small>Recherche</small></button><button data-g="cart" class="'+(a==='c'?'on':'')+'">🛒'+(n?'<i>'+n+'</i>':'')+'<small>Panier</small></button></nav>';
+  var a=view==='search'?'s':view==='cart'?'c':view==='account'?'a':'h',n=count();
+  return'<nav class="nv"><button data-g="home" class="'+(a==='h'?'on':'')+'">🏠<small>Accueil</small></button><button data-g="search" class="'+(a==='s'?'on':'')+'">🔍<small>Recherche</small></button><button data-g="cart" class="'+(a==='c'?'on':'')+'">🛒'+(n?'<i>'+n+'</i>':'')+'<small>Panier</small></button><button data-g="account" class="'+(a==='a'?'on':'')+'">👤<small>Compte</small></button></nav>';
 }
 function back(to,id){return'<div class="top"><button class="back" onclick="go(\''+to+'\''+(id?',\''+id+'\'':'')+')">←</button>';}
 function chips(list,on,attr){return'<div class="chips">'+list.map(function(c){return'<button class="chip'+(c===on?' on':'')+'" '+attr+'="'+esc(c)+'">'+esc(c)+'</button>';}).join('')+'</div>';}
@@ -261,7 +313,7 @@ function colis(){
 function sendColis(){
   var v=function(i){return document.getElementById(i).value.trim();};
   var m='Bonjour Kallem Houssem 👋\nDemande de livraison de colis 📦\n🅰️ Départ : '+v('c1')+'\n🅱️ Arrivée : '+v('c2')+'\n👤 Destinataire : '+v('c3')+'\n📝 Colis : '+v('c4')+'\n📍 Je vous envoie ma position.';
-  window.open(wa(m),'_blank');
+  logOrder('colis',m,v('c3'),v('c1'),0);window.open(wa(m),'_blank');
 }
 function cartV(){
   var ks=Object.keys(cart),h=back('home')+'<h2>🛒 Mon panier</h2></div>';
@@ -275,7 +327,8 @@ function cartV(){
   var s=total();
   if(s.t||!s.u)h+='<div class="tot"><span>Total articles</span><span>'+fmt(s.t)+(s.u?' +':'')+'</span></div>';
   h+='<p class="note">'+(s.u?'Produits payés au prix du magasin. ':'')+(ids.length>1?'Plusieurs commerces : ':'')+'frais de livraison confirmés par WhatsApp.</p>';
-  h+='<div class="box"><label>Votre nom</label><input id="nom" value="'+esc(info.nom)+'" autocomplete="name"><label>Adresse / repère</label><input id="adr" value="'+esc(info.adr)+'" autocomplete="street-address"><label>Remarque (optionnel)</label><textarea id="rem"></textarea></div>';
+  if(!(window.KH&&KH.profile))h+='<button class="again" style="margin:10px 0 0" data-g="account">👤 Créez un compte pour enregistrer vos infos (facultatif)</button>';
+  h+='<div class="box"><label>Votre nom</label><input id="nom" value="'+esc(info.nom||(window.KH&&KH.profile&&KH.profile.nom)||'')+'" autocomplete="name"><label>Adresse / repère</label><input id="adr" value="'+esc(info.adr||(window.KH&&KH.profile&&KH.profile.adr)||'')+'" autocomplete="street-address"><label>Remarque (optionnel)</label><textarea id="rem"></textarea></div>';
   return h+'<button class="send" onclick="send()">Commander sur WhatsApp 📲</button>';
 }
 function send(){
@@ -289,16 +342,20 @@ function send(){
   if(s.t)m+='💰 Total articles : '+fmt(s.t)+(s.u?' + produits au prix du magasin':'')+'\n';else if(s.u)m+='💰 Produits au prix du magasin\n';
   if(adult)m+='🔞 Client majeur (+18) – pièce d’identité possible à la livraison\n';
   if(n)m+='👤 '+n+'\n';if(a)m+='🏠 '+a+'\n';if(rem)m+='📝 '+rem+'\n';
-  window.open(wa(m+'📍 Je vous envoie ma position.'),'_blank');
+  var P=(window.KH&&KH.profile)||{},maps=P.lat?'https://maps.google.com/?q='+P.lat+','+P.lng:'';
+  if(P.tel)m+='📞 '+P.tel+'\n';
+  if(maps)m+='📍 '+maps+'\n';
+  var fin=m+(maps?'':'📍 Je vous envoie ma position.');logOrder('commande',fin,n,a,s.t,P.tel,maps);window.open(wa(fin),'_blank');
 }
 function render(keep){
   var y=window.scrollY,h;
   if(view==='home')h=home();else if(view==='restos')h=restos();else if(view==='resto')h=menu();
-  else if(view==='market')h=shop(MK,CATS,mc,'Un produit n’est pas dans la liste ? Écrivez-le dans la remarque du panier.');else if(view==='kiosk')h=shop(KS,KCATS,kc,'Tickets et tabac : précisez le montant ou la marque dans la remarque du panier.');else if(view==='colis')h=colis();else if(view==='search')h=search();else h=cartV();
-  app.innerHTML=TOP+h+nav();if(keep)window.scrollTo(0,y);
+  else if(view==='market')h=shop(MK,CATS,mc,'Un produit n’est pas dans la liste ? Écrivez-le dans la remarque du panier.');else if(view==='kiosk')h=shop(KS,KCATS,kc,'Tickets et tabac : précisez le montant ou la marque dans la remarque du panier.');else if(view==='colis')h=colis();else if(view==='search')h=search();else if(view==='account')h=account();else h=cartV();
+  app.innerHTML=TOP+h+nav();if(keep)window.scrollTo(0,y);if(view==='account'&&window.KH&&KH.user)loadMo();
 }
 app.addEventListener('click',function(e){
-  var t=e.target.closest('[data-r],[data-c],[data-p],[data-m],[data-g],[data-mc],[data-sq]');if(!t)return;var d=t.dataset;
+  var t=e.target.closest('[data-r],[data-c],[data-p],[data-m],[data-g],[data-mc],[data-sq],[data-am]');if(!t)return;var d=t.dataset;
+  if(d.am){accMode=d.am;accMsg='';render();return;}
   if(d.g){
     if(d.g.indexOf('mcat:')===0){mc=d.g.slice(5);go('market');return;}
     if(d.g==='market'){mc='Tous';go('market');return;}
@@ -317,6 +374,24 @@ app.addEventListener('input',function(e){
   var p=e.target.selectionStart;render();var el=document.getElementById(id);el.focus();el.setSelectionRange(p,p);
 });
 render();
+</script>
+<script type="module">
+import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import{getAuth,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,GoogleAuthProvider,signInWithPopup,signOut,sendPasswordResetEmail}from'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import{getFirestore,doc,getDoc,setDoc,addDoc,collection,query,where,getDocs,limit}from'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+var app=initializeApp({apiKey:'AIzaSyAt7Wn3ywa4KFyTy9LP7Iw1TI0oKRSMSwI',authDomain:'kallem-houssem-gestion.firebaseapp.com',projectId:'kallem-houssem-gestion',appId:'1:196054871580:web:b2ad1e217b9a7e759db9d9'});
+var au=getAuth(app),fdb=getFirestore(app),KH=window.KH={user:null,profile:null,ready:false};
+var M={'auth/invalid-credential':'Email ou mot de passe incorrect','auth/invalid-login-credentials':'Email ou mot de passe incorrect','auth/user-not-found':'Compte introuvable','auth/wrong-password':'Mot de passe incorrect','auth/email-already-in-use':'Cet email a déjà un compte','auth/weak-password':'Mot de passe trop court (6 caractères minimum)','auth/invalid-email':'Email invalide','auth/missing-password':'Entrez le mot de passe','auth/popup-closed-by-user':'Fenêtre fermée','auth/unauthorized-domain':'Domaine non autorisé dans Firebase','auth/operation-not-allowed':'Cette méthode n’est pas activée dans Firebase','auth/too-many-requests':'Trop d’essais, réessayez plus tard','auth/network-request-failed':'Pas de connexion internet'};
+function fr(e){return M[e&&e.code]||('Erreur : '+((e&&e.code)||(e&&e.message)||''));}
+KH.signIn=async function(a,b){try{await signInWithEmailAndPassword(au,a,b);return'';}catch(e){return fr(e);}};
+KH.signUp=async function(a,b){try{await createUserWithEmailAndPassword(au,a,b);return'';}catch(e){return fr(e);}};
+KH.google=async function(){try{await signInWithPopup(au,new GoogleAuthProvider());return'';}catch(e){return fr(e);}};
+KH.reset=async function(a){try{await sendPasswordResetEmail(au,a);return'';}catch(e){return fr(e);}};
+KH.out=function(){return signOut(au);};
+KH.save=async function(p){try{await setDoc(doc(fdb,'clients',KH.user.uid),p);KH.profile=p;return'';}catch(e){return'Erreur : '+(e.code||e.message);}};
+KH.orders=async function(){try{var s=await getDocs(query(collection(fdb,'orders'),where('uid','==',KH.user.uid),limit(30))),a=[];s.forEach(function(d){var x=d.data();x.id=d.id;a.push(x);});a.sort(function(x,y){return((y.ts&&y.ts.seconds)||0)-((x.ts&&x.ts.seconds)||0);});return a;}catch(e){return[];}};
+KH.order=function(o){o.uid=KH.user.uid;o.ts=new Date();return addDoc(collection(fdb,'orders'),o);};
+onAuthStateChanged(au,async function(u){KH.user=u;KH.profile=null;if(u){try{var d=await getDoc(doc(fdb,'clients',u.uid));if(d.exists())KH.profile=d.data();}catch(e){}}KH.ready=true;if(window.onAuth)window.onAuth();});
 </script>
 </body>
 </html>
