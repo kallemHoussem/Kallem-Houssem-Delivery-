@@ -192,7 +192,7 @@ function count(){var c=0;for(var k in cart)c+=cart[k];return c;}
 function total(){var t=0,u=false;for(var k in cart){var p=k.split('|'),it=src(p[0]).items[p[1]];if(it.p==null)u=true;else t+=it.p*cart[k];}return{t:t,u:u};}
 function lab(r){return r.id==='mkt'?'🛒 Supermarché':r.id==='ksk'?'🏪 Kiosque':'🍴 '+r.name;}
 var FB={p:'kallem-houssem-gestion',k:'AIzaSyAt7Wn3ywa4KFyTy9LP7Iw1TI0oKRSMSwI'};
-var FSBASE='https://firestore.googleapis.com/v1/projects/'+FB.p+'/databases/(default)/documents';
+var FSBASE='https://firestore.googleapis.com/v1/projects/'+FB.p+'/databases/default/documents';
 function logOrder(kind,text,nom,adr,total,tel,maps){
   try{
     if(window.KH&&KH.user){KH.order({kind:kind,nom:String(nom||'').slice(0,100),adr:String(adr||'').slice(0,200),text:String(text).slice(0,2500),total:+total||0,status:'new',tel:String(tel||'').slice(0,30),maps:String(maps||'').slice(0,200)}).catch(function(){});return;}
@@ -380,7 +380,7 @@ import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.2/firebase-ap
 import{getAuth,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,GoogleAuthProvider,signInWithPopup,signOut,sendPasswordResetEmail}from'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import{getFirestore,doc,getDoc,setDoc,addDoc,collection,query,where,getDocs,limit}from'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 var app=initializeApp({apiKey:'AIzaSyAt7Wn3ywa4KFyTy9LP7Iw1TI0oKRSMSwI',authDomain:'kallem-houssem-gestion.firebaseapp.com',projectId:'kallem-houssem-gestion',appId:'1:196054871580:web:b2ad1e217b9a7e759db9d9'});
-var au=getAuth(app),fdb=getFirestore(app),KH=window.KH={user:null,profile:null,ready:false};
+var au=getAuth(app),fdb=getFirestore(app,'default'),KH=window.KH={user:null,profile:null,ready:false};
 var M={'auth/invalid-credential':'Email ou mot de passe incorrect','auth/invalid-login-credentials':'Email ou mot de passe incorrect','auth/user-not-found':'Compte introuvable','auth/wrong-password':'Mot de passe incorrect','auth/email-already-in-use':'Cet email a déjà un compte','auth/weak-password':'Mot de passe trop court (6 caractères minimum)','auth/invalid-email':'Email invalide','auth/missing-password':'Entrez le mot de passe','auth/popup-closed-by-user':'Fenêtre fermée','auth/unauthorized-domain':'Domaine non autorisé dans Firebase','auth/operation-not-allowed':'Cette méthode n’est pas activée dans Firebase','auth/too-many-requests':'Trop d’essais, réessayez plus tard','auth/network-request-failed':'Pas de connexion internet'};
 function fr(e){return M[e&&e.code]||('Erreur : '+((e&&e.code)||(e&&e.message)||''));}
 KH.signIn=async function(a,b){try{await signInWithEmailAndPassword(au,a,b);return'';}catch(e){return fr(e);}};

@@ -50,7 +50,7 @@ textarea{min-height:70px}
 var KEY='kh_gestion_v1';
 var db={liv:[],fuel:[],chg:[],set:{vid:3000},pin:''};
 var FB={p:'kallem-houssem-gestion',k:'AIzaSyAt7Wn3ywa4KFyTy9LP7Iw1TI0oKRSMSwI'};
-var BASE='https://firestore.googleapis.com/v1/projects/'+FB.p+'/databases/(default)/documents';
+var BASE='https://firestore.googleapis.com/v1/projects/'+FB.p+'/databases/default/documents';
 var auth={idToken:'',refresh:'',exp:0},logged=false,timer=null,sync='',orders=[],poll=null;
 try{var a0=JSON.parse(localStorage.getItem('kh_auth')||'null');if(a0&&a0.refresh)auth.refresh=a0.refresh;}catch(e){}
 function setAuth(j){auth.idToken=j.idToken||j.id_token;auth.refresh=j.refreshToken||j.refresh_token;auth.exp=Date.now()+((+(j.expiresIn||j.expires_in)||3600)-60)*1000;try{localStorage.setItem('kh_auth',JSON.stringify({refresh:auth.refresh}));}catch(e){}}
