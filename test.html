@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Test commandes</title>
+<style>
+body{margin:0;padding:20px;background:#061a45;color:#fff;font-family:system-ui,sans-serif}
+button{width:100%;padding:16px;border:0;border-radius:14px;background:#25d366;color:#fff;font-size:1.05rem;font-weight:700;cursor:pointer}
+pre{white-space:pre-wrap;word-break:break-word;background:rgba(255,255,255,.12);border-radius:12px;padding:12px;font:inherit;line-height:1.6}
+</style>
+</head>
+<body>
+<h2>🔧 Test des commandes</h2>
+<p>Appuyez sur le bouton, puis envoyez-moi une capture d’écran du résultat.</p>
+<button id="b" type="button">Lancer le test</button>
+<pre id="o"></pre>
+<script>
+var P='kallem-houssem-gestion',K='AIzaSyAt7Wn3ywa4KFyTy9LP7Iw1TI0oKRSMSwI';
+var out=document.getElementById('o');
+function line(t){out.textContent+=t+'\n';}
+document.getElementById('b').addEventListener('click',async function(){
+  out.textContent='';
+  line('1) Fichier index.html en ligne');
+  try{
+    var r=await fetch('index.html?'+Date.now()),x=await r.text();
+    line('   HTTP '+r.status);
+    line('   contient logOrder : '+(x.indexOf('logOrder')>=0?'OUI ✅':'NON ❌ (ancienne version, il faut re-uploader index.html)'));
+    line('   contient Firebase compte : '+(x.indexOf('firebase-auth.js')>=0?'OUI ✅':'NON ❌'));
+  }catch(e){line('   erreur : '+e.message);}
+  line('');
+  line('2) Écriture dans Firestore');
+  try{
+    var r2=await fetch('https://firestore.googleapis.com/v1/projects/'+P+'/databases/(default)/documents/orders?key='+K,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({fields:{kind:{stringValue:'test'},nom:{stringValue:'Test'},adr:{stringValue:'Test'},text:{stringValue:'TEST – à annuler'},total:{doubleValue:0},status:{stringValue:'new'},ts:{timestampValue:new Date().toISOString()}}})
+    });
+    var j=await r2.json();
+    line('   HTTP '+r2.status);
+    line(j.error?'   ❌ '+j.error.status+' : '+j.error.message:'   ✅ commande test créée');
+  }catch(e){line('   erreur : '+e.message);}
+});
+</script>
+</body>
+</html>
