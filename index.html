@@ -69,6 +69,7 @@ textarea{min-height:64px;resize:vertical}
 .box{background:var(--card);border-radius:16px;padding:14px;margin:12px 0;display:grid;gap:8px}
 .box label{font-size:.85rem;font-weight:600}
 .tot{display:flex;justify-content:space-between;font-weight:700;font-size:1.1rem}
+.alw{background:rgba(255,200,60,.25);border-radius:12px;padding:10px;font-weight:600;font-size:.85rem;margin-bottom:8px}
 .note{font-size:.85rem;opacity:.85;text-align:center;margin:8px 0}
 .empty{text-align:center;opacity:.85;padding:30px 0}
 </style>
@@ -182,8 +183,8 @@ R.push(MK);R.push(KS);
 // ====================================================================
 var TOP='<div class="tb"><svg viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5fd0ff"/><stop offset="1" stop-color="#1e90ff"/></linearGradient></defs><rect width="40" height="40" rx="12" fill="url(#g)"/><path fill="#0a2a6b" transform="translate(9 9) scale(.9)" d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1l-2.3 2.2z"/></svg><div class="lt"><div class="lar" dir="rtl">كلم حسام</div><div class="len">KALLEM HOUSSEM</div></div></div>';
 var cart={},cur=null,view='home',vr=null,cat='Tous',q='',mc='Tous',kc='Tous';
-var info={nom:'',adr:''};
-try{var sv=JSON.parse(localStorage.getItem('kh_info')||'{}');info.nom=sv.nom||'';info.adr=sv.adr||'';}catch(e){}
+var info={nom:'',adr:'',tel:'',lat:0,lng:0},draft={},locSel='',nowLoc=null,locAsk=false,locChecked=false;
+try{var sv=JSON.parse(localStorage.getItem('kh_info')||'{}');info.nom=sv.nom||'';info.adr=sv.adr||'';info.tel=sv.tel||'';info.lat=sv.lat||0;info.lng=sv.lng||0;}catch(e){}
 var app=document.getElementById('app');
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
 function fmt(n){return (Math.round(n*100)/100).toString().replace('.',',')+' DT';}
@@ -315,6 +316,23 @@ function sendColis(){
   var m='Bonjour Kallem Houssem 👋\nDemande de livraison de colis 📦\n🅰️ Départ : '+v('c1')+'\n🅱️ Arrivée : '+v('c2')+'\n👤 Destinataire : '+v('c3')+'\n📝 Colis : '+v('c4')+'\n📍 Je vous envoie ma position.';
   logOrder('colis',m,v('c3'),v('c1'),0);window.open(wa(m),'_blank');
 }
+function PF(){return(window.KH&&KH.profile)||{};}
+function savedLoc(){var p=PF();if(p.lat)return{lat:p.lat,lng:p.lng};if(info.lat)return{lat:info.lat,lng:info.lng};return null;}
+function dkm(a,b){var r=Math.PI/180,x=Math.sin((b.lat-a.lat)*r/2),y=Math.sin((b.lng-a.lng)*r/2),h=x*x+Math.cos(a.lat*r)*Math.cos(b.lat*r)*y*y;return 12742*Math.asin(Math.sqrt(h));}
+function getPos(cb){if(!navigator.geolocation){cb(null);return;}navigator.geolocation.getCurrentPosition(function(p){cb({lat:+p.coords.latitude.toFixed(6),lng:+p.coords.longitude.toFixed(6)});},function(){cb(null);},{enableHighAccuracy:true,timeout:15000});}
+function useNow(){getPos(function(p){if(!p){alert('Position indisponible. Autorisez la localisation dans votre navigateur.');return;}nowLoc=p;locSel='now';locAsk=false;render();});}
+function pickLoc(w){locSel=w;locAsk=false;render();}
+function checkLoc(){
+  if(locChecked)return;locChecked=true;var sl=savedLoc();if(!sl)return;
+  if(navigator.permissions&&navigator.permissions.query){navigator.permissions.query({name:'geolocation'}).then(function(r){if(r.state==='granted')getPos(function(p){if(p&&dkm(p,sl)>0.3){nowLoc=p;locAsk=true;locSel='';render();}});}).catch(function(){});}
+}
+function locBox(){
+  var sl=savedLoc(),sel=locSel||(locAsk?'':(sl?'saved':'')),h='<div class="box"><label>📍 Lieu de livraison</label>';
+  if(locAsk&&nowLoc&&sl)h+='<div class="alw">⚠️ Vous semblez être à '+(Math.round(dkm(nowLoc,sl)*10)/10).toString().replace('.',',')+' km de votre adresse enregistrée. Où livrer ?</div>';
+  h+='<div class="chips">'+(sl?'<button class="chip'+(sel==='saved'?' on':'')+'" onclick="pickLoc(\'saved\')">🏠 Adresse enregistrée</button>':'')+'<button class="chip'+(sel==='now'?' on':'')+'" onclick="useNow()">📍 Ma position actuelle</button></div>';
+  h+='<div class="note">'+(sel==='now'&&nowLoc?'Livraison à votre position actuelle ✅':sel==='saved'?'Livraison à votre adresse enregistrée ✅':'Touchez « Ma position actuelle » pour une livraison plus rapide, ou envoyez-la sur WhatsApp.')+'</div></div>';
+  return h;
+}
 function cartV(){
   var ks=Object.keys(cart),h=back('home')+'<h2>🛒 Mon panier</h2></div>';
   if(!ks.length)return h+'<div class="empty" style="font-size:3rem">🛒</div><div class="empty" style="padding-top:0">Votre panier est vide</div><button class="send" data-g="home">Commencer mes achats</button>';
@@ -328,12 +346,20 @@ function cartV(){
   if(s.t||!s.u)h+='<div class="tot"><span>Total articles</span><span>'+fmt(s.t)+(s.u?' +':'')+'</span></div>';
   h+='<p class="note">'+(s.u?'Produits payés au prix du magasin. ':'')+(ids.length>1?'Plusieurs commerces : ':'')+'frais de livraison confirmés par WhatsApp.</p>';
   if(!(window.KH&&KH.profile))h+='<button class="again" style="margin:10px 0 0" data-g="account">👤 Créez un compte pour enregistrer vos infos (facultatif)</button>';
-  h+='<div class="box"><label>Votre nom</label><input id="nom" value="'+esc(info.nom||(window.KH&&KH.profile&&KH.profile.nom)||'')+'" autocomplete="name"><label>Adresse / repère</label><input id="adr" value="'+esc(info.adr||(window.KH&&KH.profile&&KH.profile.adr)||'')+'" autocomplete="street-address"><label>Remarque (optionnel)</label><textarea id="rem"></textarea></div>';
+  var pf=PF(),dv=function(k,d){return draft[k]!==undefined?draft[k]:d;};
+  h+='<div class="box"><label>Votre nom</label><input id="nom" value="'+esc(dv('nom',info.nom||pf.nom||''))+'" autocomplete="name"><label>Téléphone (WhatsApp)</label><input id="tel" type="tel" inputmode="tel" value="'+esc(dv('tel',info.tel||pf.tel||''))+'" autocomplete="tel"><label>Adresse / repère</label><input id="adr" value="'+esc(dv('adr',info.adr||pf.adr||''))+'" autocomplete="street-address"><label>Remarque (optionnel)</label><textarea id="rem">'+esc(dv('rem',''))+'</textarea></div>'+locBox();
+  h+='<p class="note">Vos informations servent uniquement à la livraison.</p>';
+  checkLoc();
   return h+'<button class="send" onclick="send()">Commander sur WhatsApp 📲</button>';
 }
 function send(){
-  var n=document.getElementById('nom').value.trim(),a=document.getElementById('adr').value.trim(),rem=document.getElementById('rem').value.trim();
-  info={nom:n,adr:a};try{localStorage.setItem('kh_info',JSON.stringify(info));localStorage.setItem('kh_last2',JSON.stringify(cart));}catch(e){}
+  var n=val('nom'),tel=val('tel'),a=val('adr'),rem=val('rem'),sl=savedLoc(),sel=locSel||(locAsk?'':(sl?'saved':''));
+  if(locAsk&&!sel){alert('Choisissez le lieu de livraison');return;}
+  if(!n){alert('Entrez votre nom');return;}
+  if(String(tel).replace(/\D/g,'').length<8){alert('Entrez votre numéro WhatsApp');return;}
+  var loc=sel==='now'?nowLoc:sel==='saved'?sl:null;
+  info={nom:n,adr:a,tel:tel,lat:sl?sl.lat:(loc?loc.lat:0),lng:sl?sl.lng:(loc?loc.lng:0)};
+  try{localStorage.setItem('kh_info',JSON.stringify(info));localStorage.setItem('kh_last2',JSON.stringify(cart));}catch(e){}
   var ks=Object.keys(cart),ids=[],m='Bonjour Kallem Houssem 👋\nNouvelle commande :\n',adult=false;
   ks.forEach(function(k){var i=k.split('|')[0];if(ids.indexOf(i)<0)ids.push(i);});
   ids.forEach(function(id){var r=src(id);m+='\n'+lab(r)+'\n';
@@ -341,12 +367,12 @@ function send(){
   var s=total();m+='\n';
   if(s.t)m+='💰 Total articles : '+fmt(s.t)+(s.u?' + produits au prix du magasin':'')+'\n';else if(s.u)m+='💰 Produits au prix du magasin\n';
   if(adult)m+='🔞 Client majeur (+18) – pièce d’identité possible à la livraison\n';
-  if(n)m+='👤 '+n+'\n';if(a)m+='🏠 '+a+'\n';if(rem)m+='📝 '+rem+'\n';
-  var P=(window.KH&&KH.profile)||{},maps=P.lat?'https://maps.google.com/?q='+P.lat+','+P.lng:'';
-  if(P.tel)m+='📞 '+P.tel+'\n';
-  if(maps)m+='📍 '+maps+'\n';
-  var fin=m+(maps?'':'📍 Je vous envoie ma position.');logOrder('commande',fin,n,a,s.t,P.tel,maps);window.open(wa(fin),'_blank');
+  var maps=loc?'https://maps.google.com/?q='+loc.lat+','+loc.lng:'';
+  m+='👤 '+n+'\n📞 '+tel+'\n';if(a)m+='🏠 '+a+'\n';if(maps)m+='📍 '+maps+'\n';if(rem)m+='📝 '+rem+'\n';
+  var fin=m+(maps?'':'📍 Je vous envoie ma position.');
+  logOrder('commande',fin,n,a,s.t,tel,maps);window.open(wa(fin),'_blank');
 }
+
 function render(keep){
   var y=window.scrollY,h;
   if(view==='home')h=home();else if(view==='restos')h=restos();else if(view==='resto')h=menu();
@@ -369,7 +395,7 @@ app.addEventListener('click',function(e){
   var k=(d.p||d.m).split('|');chg(k[0],+k[1],d.p?1:-1);
 });
 app.addEventListener('input',function(e){
-  var id=e.target.id;if(id!=='q'&&id!=='sq')return;
+  var id=e.target.id;if(id==='nom'||id==='tel'||id==='adr'||id==='rem'){draft[id]=e.target.value;return;}if(id!=='q'&&id!=='sq')return;
   if(id==='q')q=e.target.value;else sq=e.target.value;
   var p=e.target.selectionStart;render();var el=document.getElementById(id);el.focus();el.setSelectionRange(p,p);
 });
