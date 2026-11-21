@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Gestion – Houssem</title>
+<style>
+:root{box-sizing:border-box;--bg1:#061a45;--bg2:#0b5ed7;--card:rgba(255,255,255,.14);--acc:#5fd0ff;--ok:#25d366;--bad:#ff7b7b;--field:#fff;--ft:#0a2a6b;padding-top:env(safe-area-inset-top,0px)}
+*,*:before,*:after{box-sizing:inherit}
+body{margin:0;min-height:100vh;background:linear-gradient(170deg,var(--bg2),var(--bg1)) fixed;color:#fff;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;display:flex;justify-content:center}
+#app{width:100%;max-width:480px;padding:18px 16px 100px}
+h1{font-size:1.25rem;margin:0 0 12px}
+h2{font-size:1rem;margin:18px 0 8px;opacity:.9}
+input,select,textarea{width:100%;padding:12px;border-radius:12px;border:0;font:inherit;background:var(--field);color:var(--ft)}
+.box{background:var(--card);border-radius:16px;padding:14px;display:grid;gap:8px;margin-bottom:12px}
+.box label{font-size:.8rem;font-weight:600;opacity:.9}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.btn{width:100%;padding:14px;border:0;border-radius:14px;background:var(--ok);color:#fff;font:inherit;font-weight:700;font-size:1rem;cursor:pointer}
+.btn.s{background:var(--card);font-size:.9rem;padding:10px}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px}
+.chip{flex:none;border:0;border-radius:18px;padding:8px 14px;background:var(--card);color:#fff;font:inherit;font-weight:600;cursor:pointer}
+.chip.on{background:#fff;color:var(--ft)}
+.g{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.k{background:var(--card);border-radius:14px;padding:12px}
+.k small{display:block;opacity:.8;font-size:.75rem}
+.k b{font-size:1.15rem}
+.pos{color:#7dffa6}.neg{color:var(--bad)}
+.li{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--card);border-radius:12px;padding:10px 12px;margin-bottom:6px;font-size:.9rem}
+.li small{display:block;opacity:.75}
+.li button{border:0;background:none;color:var(--bad);font-size:1.1rem;cursor:pointer}
+.al{border-radius:14px;padding:12px;margin-bottom:12px;font-weight:600;background:rgba(255,200,60,.25)}
+.al.r{background:rgba(255,90,90,.3)}
+.nv{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:center;background:rgba(6,26,69,.95);padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px))}
+.nv button{flex:1;max-width:120px;background:none;border:0;color:#fff;opacity:.6;font:inherit;font-size:1.3rem;cursor:pointer;padding:4px 0}
+.nv button.on{opacity:1}
+.nv small{display:block;font-size:.65rem;font-weight:600}
+.bd{background:#ff4d4d;color:#fff;border-radius:10px;font-size:.65rem;padding:1px 6px;margin-left:2px}
+.oc{background:var(--card);border-radius:14px;padding:12px;margin-bottom:10px}
+.oc pre{white-space:pre-wrap;word-break:break-word;font:inherit;margin:6px 0}
+.oc .st{font-size:.75rem;opacity:.8}
+.oc .ac{display:grid;grid-template-columns:2fr 1fr;gap:8px;margin-top:6px}
+.note{font-size:.8rem;opacity:.8;margin:6px 0}
+textarea{min-height:70px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+var KEY='kh_gestion_v1';
+var db={liv:[],fuel:[],chg:[],set:{vid:3000},pin:''};
+var FB={p:'kallem-houssem-gestion',k:'AIzaSyAt7Wn3ywa4KFyTy9LP7Iw1TI0oKRSMSwI'};
+var BASE='https://firestore.googleapis.com/v1/projects/'+FB.p+'/databases/(default)/documents';
+var auth={idToken:'',refresh:'',exp:0},logged=false,timer=null,sync='',orders=[],poll=null;
+try{var a0=JSON.parse(localStorage.getItem('kh_auth')||'null');if(a0&&a0.refresh)auth.refresh=a0.refresh;}catch(e){}
+function setAuth(j){auth.idToken=j.idToken||j.id_token;auth.refresh=j.refreshToken||j.refresh_token;auth.exp=Date.now()+((+(j.expiresIn||j.expires_in)||3600)-60)*1000;try{localStorage.setItem('kh_auth',JSON.stringify({refresh:auth.refresh}));}catch(e){}}
+async function token(){
+  if(auth.idToken&&Date.now()<auth.exp)return auth.idToken;
+  if(!auth.refresh)throw new Error('login');
+  var r=await fetch('https://securetoken.googleapis.com/v1/token?key='+FB.k,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'grant_type=refresh_token&refresh_token='+encodeURIComponent(auth.refresh)});
+  var j=await r.json();if(!r.ok)throw new Error('login');setAuth(j);return auth.idToken;
+}
+async function fs(method,path,body){
+  var t=await token();
+  var r=await fetch(BASE+path,{method:method,headers:{'Authorization':'Bearer '+t,'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});
+  var j=null;try{j=await r.json();}catch(e){}
+  if(!r.ok){var e=new Error((j&&j.error&&j.error.message)||('HTTP '+r.status));e.code=r.status;throw e;}
+  return j;
+}
+function gv(v){if(!v)return'';if(v.stringValue!==undefined)return v.stringValue;if(v.doubleValue!==undefined)return v.doubleValue;if(v.integerValue!==undefined)return +v.integerValue;return v.timestampValue||'';}
+function push(){fs('PATCH','/gestion/main?updateMask.fieldPaths=data',{fields:{data:{stringValue:JSON.stringify(db)}}}).then(function(){sync='ok';},function(e){sync='err';msg='Sauvegarde échouée : '+e.message;render();});}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(db));}catch(e){}clearTimeout(timer);timer=setTimeout(push,400);}
+async function loadDb(){
+  try{var j=await fs('GET','/gestion/main');var d=JSON.parse(j.fields.data.stringValue);db=Object.assign({liv:[],fuel:[],chg:[],set:{vid:3000}},d);}
+  catch(e){if(e.code!==404)throw e;}
+}
+async function loadOrders(){
+  var r=await fs('POST',':runQuery',{structuredQuery:{from:[{collectionId:'orders'}],orderBy:[{field:{fieldPath:'ts'},direction:'DESCENDING'}],limit:50}});
+  orders=(r||[]).filter(function(x){return x.document;}).map(function(x){var f=x.document.fields||{};return{id:x.document.name.split('/').pop(),nom:gv(f.nom),adr:gv(f.adr),tel:gv(f.tel),maps:gv(f.maps),text:gv(f.text),kind:gv(f.kind),status:gv(f.status)||'new',ts:gv(f.ts)};});
+}
+function newN(){return orders.filter(function(o){return o.status==='new';}).length;}
+function updNav(){var n=newN();document.title=(n?'('+n+') ':'')+'Gestion – Houssem';var e=document.querySelector('.nv');if(e)e.outerHTML=nav();}
+async function refresh(){try{await loadOrders();msg='';if(tab==='cmd')render();else updNav();}catch(e){msg='Actualisation échouée : '+e.message;if(tab==='cmd')render();}}
+async function boot(){
+  try{await token();await loadDb();logged=true;try{await loadOrders();}catch(e){msg='Commandes : '+e.message;}
+    clearInterval(poll);poll=setInterval(function(){if(!document.hidden)refresh();},20000);}
+  catch(e){logged=false;if(e.message!=='login')msg='Erreur : '+e.message;}
+  render();
+}
+async function login(){
+  var em=val('em'),pw=document.getElementById('pw').value;msg='Connexion…';render();
+  try{var r=await fetch('https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key='+FB.k,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:em,password:pw,returnSecureToken:true})});
+    var j=await r.json();if(!r.ok)throw new Error((j.error&&j.error.message)||'erreur');setAuth(j);msg='';await boot();}
+  catch(e){msg='Connexion refusée : '+e.message;logged=false;render();}
+}
+function logout(){try{localStorage.removeItem('kh_auth');}catch(e){}auth={idToken:'',refresh:'',exp:0};logged=false;clearInterval(poll);msg='';render();}
+var app=document.getElementById('app'),tab='cmd',pr='mois',msg='';
+var TYPES=['Vidange','Pneus','Réparation','Pièces','Assurance','Vignette','Contrôle technique','Lavage','Autre'];
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function f(n){return (Math.round(n*100)/100).toString().replace('.',',');}
+function dt(n){return f(n)+' DT';}
+function iso(d){var m=d.getMonth()+1,j=d.getDate();return d.getFullYear()+'-'+(m<10?'0':'')+m+'-'+(j<10?'0':'')+j;}
+function today(){return iso(new Date());}
+function inP(d){
+  var t=today();if(pr==='tout')return true;
+  if(pr==='jour')return d===t;
+  if(pr==='mois')return d.slice(0,7)===t.slice(0,7);
+  var a=new Date();a.setDate(a.getDate()-6);return d>=iso(a)&&d<=t;
+}
+function sum(a,k){return a.reduce(function(s,x){return s+(+x[k]||0);},0);}
+function num(id){return parseFloat(String(document.getElementById(id).value).replace(',','.'));}
+function val(id){return document.getElementById(id).value.trim();}
+function dsort(a){return a.slice().sort(function(x,y){return x.d<y.d?1:x.d>y.d?-1:y.id-x.id;});}
+function odoNow(){var m=0;db.fuel.concat(db.chg).forEach(function(e){if(e.odo>m)m=e.odo;});return m;}
+function conso(){
+  var a=db.fuel.filter(function(e){return e.odo>0&&e.l>0;}).sort(function(x,y){return x.odo-y.odo;});
+  if(a.length<2)return null;
+  var km=a[a.length-1].odo-a[0].odo,l=0,c=0;
+  for(var i=1;i<a.length;i++)l+=a[i].l;
+  for(var j=1;j<a.length;j++)c+=a[j].m;
+  return km>0?{l100:l/km*100,ckm:c/km,km:km}:null;
+}
+function vidAlert(){
+  var v=dsort(db.chg.filter(function(e){return e.t==='Vidange'&&e.odo>0;}))[0];
+  if(!v)return'<div class="al">🛢️ Ajoutez votre dernière vidange (avec le compteur km) pour avoir le rappel.</div>';
+  var reste=v.odo+db.set.vid-odoNow();
+  if(reste<=0)return'<div class="al r">🛢️ Vidange en retard de '+f(-reste)+' km !</div>';
+  if(reste<=500)return'<div class="al">🛢️ Vidange bientôt : dans '+f(reste)+' km</div>';
+  return'<div class="k" style="margin-bottom:12px"><small>🛢️ Prochaine vidange</small><b>dans '+f(reste)+' km</b></div>';
+}
+function periodChips(){
+  var P=[['jour','Aujourd’hui'],['7j','7 jours'],['mois','Ce mois'],['tout','Tout']];
+  return'<div class="chips">'+P.map(function(p){return'<button class="chip'+(pr===p[0]?' on':'')+'" data-pr="'+p[0]+'">'+p[1]+'</button>';}).join('')+'</div>';
+}
+function summary(){
+  var L=db.liv.filter(function(e){return inP(e.d);}),F=db.fuel.filter(function(e){return inP(e.d);}),C=db.chg.filter(function(e){return inP(e.d);});
+  var rev=sum(L,'m'),fu=sum(F,'m'),ch=sum(C,'m'),net=rev-fu-ch,n=L.length,co=conso();
+  var h='<h1>📊 Résumé</h1><div class="note">☁️ Synchronisé : téléphone et PC voient les mêmes données.</div>'+(sync==='err'?'<div class="al r">⚠️ '+esc(msg)+'</div>':'')+vidAlert()+periodChips()+'<div class="g">'+
+   '<div class="k"><small>Livraisons</small><b>'+n+'</b></div>'+
+   '<div class="k"><small>Revenus</small><b>'+dt(rev)+'</b></div>'+
+   '<div class="k"><small>⛽ Carburant</small><b>'+dt(fu)+'</b></div>'+
+   '<div class="k"><small>🔧 Charges</small><b>'+dt(ch)+'</b></div>'+
+   '<div class="k" style="grid-column:1/3"><small>Bénéfice net</small><b class="'+(net>=0?'pos':'neg')+'" style="font-size:1.6rem">'+dt(net)+'</b></div>'+
+   '<div class="k"><small>Moyenne / livraison</small><b>'+(n?dt(rev/n):'–')+'</b></div>'+
+   '<div class="k"><small>Net / livraison</small><b>'+(n?dt(net/n):'–')+'</b></div>'+
+   '<div class="k"><small>Conso moyenne</small><b>'+(co?f(co.l100)+' L/100':'–')+'</b></div>'+
+   '<div class="k"><small>Carburant / km</small><b>'+(co?f(co.ckm)+' DT':'–')+'</b></div></div>';
+  h+='<h2>Réglages</h2><div class="box"><label>Vidange tous les (km)</label><input id="sv" type="number" inputmode="numeric" value="'+db.set.vid+'"><button class="btn s" onclick="setVid()">Enregistrer</button>'+
+   '</div>';
+  h+='<div class="box"><button class="btn s" onclick="logout()">🚪 Se déconnecter</button><label>Sauvegarde</label><button class="btn s" onclick="backup()">📋 Copier la sauvegarde</button><textarea id="bk" placeholder="Pour restaurer : collez la sauvegarde ici"></textarea><button class="btn s" onclick="restore()">♻️ Restaurer</button></div>';
+  return h+'<p class="note">'+esc(msg)+'</p><p class="note">Faites une sauvegarde de temps en temps (copie dans WhatsApp / Notes).</p>';
+}
+function list(a,fn,key){
+  if(!a.length)return'<div class="note">Rien pour le moment.</div>';
+  return dsort(a).slice(0,60).map(function(e){return'<div class="li"><div>'+fn(e)+'</div><button data-del="'+key+'|'+e.id+'">✕</button></div>';}).join('');
+}
+function livV(){
+  var L=db.liv.filter(function(e){return inP(e.d);});
+  return'<h1>🛵 Livraisons</h1><div class="box"><div class="row2"><div><label>Gain (DT)</label><input id="lm" type="number" inputmode="decimal" step="0.1"></div><div><label>Km (option)</label><input id="lk" type="number" inputmode="decimal"></div></div>'+
+   '<label>Restaurant / zone (option)</label><input id="ln"><label>Date</label><input id="ld" type="date" value="'+today()+'"><button class="btn" onclick="addLiv()">Ajouter la livraison</button></div>'+
+   periodChips()+'<div class="note">'+L.length+' livraison(s) · '+dt(sum(L,'m'))+'</div>'+
+   list(L,function(e){return'<b>'+dt(e.m)+'</b> · '+esc(e.d)+'<small>'+esc(e.n||'')+(e.km?' · '+f(e.km)+' km':'')+'</small>';},'liv');
+}
+function fuelV(){
+  var F=db.fuel.filter(function(e){return inP(e.d);}),co=conso();
+  return'<h1>⛽ Carburant</h1><div class="box"><div class="row2"><div><label>Litres</label><input id="fl" type="number" inputmode="decimal"></div><div><label>Montant (DT)</label><input id="fm" type="number" inputmode="decimal"></div></div>'+
+   '<label>Compteur km (plein à ras bord)</label><input id="fo" type="number" inputmode="numeric"><label>Date</label><input id="fd" type="date" value="'+today()+'"><button class="btn" onclick="addFuel()">Ajouter le plein</button></div>'+
+   (co?'<div class="k" style="margin-bottom:10px"><small>Conso moyenne</small><b>'+f(co.l100)+' L/100 km · '+f(co.ckm)+' DT/km</b></div>':'<div class="note">Ajoutez 2 pleins avec le compteur km pour calculer la consommation.</div>')+
+   periodChips()+list(F,function(e){return'<b>'+dt(e.m)+'</b> · '+f(e.l)+' L · '+esc(e.d)+'<small>'+(e.odo?f(e.odo)+' km':'')+'</small>';},'fuel');
+}
+function chgV(){
+  var C=db.chg.filter(function(e){return inP(e.d);});
+  return'<h1>🔧 Charges &amp; maintenance</h1>'+vidAlert()+'<div class="box"><label>Type</label><select id="ct">'+TYPES.map(function(t){return'<option>'+t+'</option>';}).join('')+'</select>'+
+   '<div class="row2"><div><label>Montant (DT)</label><input id="cm" type="number" inputmode="decimal"></div><div><label>Compteur km (option)</label><input id="co" type="number" inputmode="numeric"></div></div>'+
+   '<label>Note (option)</label><input id="cn"><label>Date</label><input id="cd" type="date" value="'+today()+'"><button class="btn" onclick="addChg()">Ajouter la charge</button></div>'+
+   periodChips()+'<div class="note">Total : '+dt(sum(C,'m'))+'</div>'+
+   list(C,function(e){return'<b>'+esc(e.t)+' · '+dt(e.m)+'</b> · '+esc(e.d)+'<small>'+esc(e.n||'')+(e.odo?' · '+f(e.odo)+' km':'')+'</small>';},'chg');
+}
+function loginV(){
+  return'<h1>🔒 Gestion – Houssem</h1><div class="box"><label>Email</label><input id="em" type="email" autocomplete="username"><label>Mot de passe</label><input id="pw" type="password" autocomplete="current-password"><button class="btn" onclick="login()">Se connecter</button></div><p class="note">'+esc(msg)+'</p>';
+}
+function cmdV(){
+  var N=orders.filter(function(o){return o.status==='new';}),O=orders.filter(function(o){return o.status!=='new';});
+  function card(o){
+    var t=o.ts?new Date(o.ts).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'';
+    var st=o.status==='done'?'✅ Livrée':o.status==='cancel'?'✖ Annulée':'🆕 Nouvelle';
+    return'<div class="oc"><div class="st">'+st+' · '+esc(t)+' · '+esc(o.kind==='colis'?'📦 Colis':'🛒 Commande')+'</div>'+(o.tel?'<div class="st">📞 <a href="tel:'+esc(o.tel)+'" style="color:#5fd0ff">'+esc(o.tel)+'</a></div>':'')+(/^https:\/\/maps\.google\.com\//.test(o.maps)?'<div class="st"><a href="'+esc(o.maps)+'" target="_blank" rel="noopener" style="color:#5fd0ff">📍 Ouvrir Google Maps</a></div>':'')+'<pre>'+esc(o.text)+'</pre>'+
+     (o.status==='new'?'<div class="ac"><button class="btn" data-od="'+o.id+'">✅ Livrée</button><button class="btn s" data-oc="'+o.id+'">✖</button></div>':'')+'</div>';
+  }
+  return'<h1>🔔 Commandes</h1><button class="btn s" onclick="refresh()" style="margin-bottom:12px">🔄 Actualiser</button>'+(msg?'<div class="al">'+esc(msg)+'</div>':'')+
+   (N.length?N.map(card).join(''):'<div class="note">Aucune nouvelle commande.</div>')+(O.length?'<h2>Historique</h2>'+O.slice(0,20).map(card).join(''):'');
+}
+async function setSt(id,st){await fs('PATCH','/orders/'+id+'?updateMask.fieldPaths=status',{fields:{status:{stringValue:st}}});}
+async function orderDone(id){
+  var o=orders.filter(function(x){return x.id===id;})[0];if(!o)return;
+  var v=prompt('Gain de cette livraison (DT) ?');if(v===null)return;var m=parseFloat(String(v).replace(',','.'));
+  if(!ok(m)){alert('Entrez un montant valide');return;}
+  try{await setSt(id,'done');}catch(e){alert('Échec : '+e.message);return;}
+  db.liv.push({id:Date.now(),d:today(),m:m,km:0,n:(o.nom||'')+' '+(o.adr||'')});save();await refresh();
+}
+async function orderCancel(id){if(!confirm('Annuler cette commande ?'))return;try{await setSt(id,'cancel');await refresh();}catch(e){alert('Échec : '+e.message);}}
+function nav(){
+  var T=[['cmd','🔔','Commandes'],['sum','📊','Résumé'],['liv','🛵','Livraisons'],['fuel','⛽','Carburant'],['chg','🔧','Charges']];
+  return'<nav class="nv">'+T.map(function(t){return'<button data-t="'+t[0]+'" class="'+(tab===t[0]?'on':'')+'">'+t[1]+(t[0]==='cmd'&&newN()?'<b class="bd">'+newN()+'</b>':'')+'<small>'+t[2]+'</small></button>';}).join('')+'</nav>';
+}
+function render(){
+  if(!logged){app.innerHTML=loginV();return;}
+  var h=tab==='cmd'?cmdV():tab==='sum'?summary():tab==='liv'?livV():tab==='fuel'?fuelV():chgV();
+  app.innerHTML=h+nav();
+}
+function ok(v){return isFinite(v)&&v>0;}
+function addLiv(){var m=num('lm');if(!ok(m)){alert('Entrez le gain en DT');return;}
+  db.liv.push({id:Date.now(),d:val('ld')||today(),m:m,km:num('lk')||0,n:val('ln')});save();msg='';render();}
+function addFuel(){var l=num('fl'),m=num('fm');if(!ok(l)||!ok(m)){alert('Entrez les litres et le montant');return;}
+  db.fuel.push({id:Date.now(),d:val('fd')||today(),l:l,m:m,odo:num('fo')||0});save();render();}
+function addChg(){var m=num('cm');if(!ok(m)){alert('Entrez le montant');return;}
+  db.chg.push({id:Date.now(),d:val('cd')||today(),t:val('ct'),m:m,odo:num('co')||0,n:val('cn')});save();render();}
+function setVid(){var v=num('sv');if(ok(v)){db.set.vid=v;save();msg='Enregistré ✅';render();}}
+function backup(){
+  var t=JSON.stringify(db);
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(function(){msg='Sauvegarde copiée ✅ (collez-la dans WhatsApp / Notes)';render();},function(){document.getElementById('bk').value=t;msg='Copiez le texte ci-dessus';});}
+  else{document.getElementById('bk').value=t;msg='Copiez le texte ci-dessus';}
+}
+function restore(){
+  try{var x=JSON.parse(val('bk'));if(!x||!x.liv)throw 0;if(!confirm('Remplacer les données actuelles ?'))return;db=Object.assign({liv:[],fuel:[],chg:[],set:{vid:3000},pin:''},x);save();msg='Restauré ✅';render();}
+  catch(e){alert('Sauvegarde invalide');}
+}
+app.addEventListener('click',function(e){
+  var t=e.target.closest('[data-t],[data-pr],[data-del],[data-od],[data-oc]');if(!t)return;var d=t.dataset;
+  if(d.od){orderDone(d.od);return;}
+  if(d.oc){orderCancel(d.oc);return;}
+  if(d.t){tab=d.t;render();window.scrollTo(0,0);return;}
+  if(d.pr){pr=d.pr;render();return;}
+  if(d.del){if(!confirm('Supprimer cette ligne ?'))return;var p=d.del.split('|');db[p[0]]=db[p[0]].filter(function(x){return String(x.id)!==p[1];});save();render();}
+});
+app.innerHTML='<h1>Chargement…</h1>';
+boot();
+</script>
+</body>
+</html>
