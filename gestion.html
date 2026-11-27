@@ -322,7 +322,7 @@ function cmdV(){
   function card(o){
     var t=o.ts?new Date(o.ts).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'';
     var st=o.status==='done'?'✅ Livrée':o.status==='cancel'?'✖ Annulée':o.status==='accepted'?'🛵 En cours':'🆕 Nouvelle';
-    var bt=o.status==='new'?'<div class="ac"><button class="btn" data-oa="'+o.id+'">✅ Accepter</button><button class="btn s" data-oc="'+o.id+'">✖</button></div>':o.status==='accepted'?'<div class="ac"><button class="btn" data-od="'+o.id+'">🛵 Livrée</button><button class="btn s" data-oc="'+o.id+'">✖</button></div>':'';
+    var bt=o.status==='new'?'<div class="ac"><button class="btn" data-oa="'+o.id+'">✅ Accepter</button><button class="btn s" data-oc="'+o.id+'">✖</button><button class="btn s" data-assign="'+o.id+'">🛵 تعيين ليفرور</button></div>':o.status==='accepted'?'<div class="ac"><button class="btn" data-od="'+o.id+'">🛵 Livrée</button><button class="btn s" data-oc="'+o.id+'">✖</button><button class="btn s" data-assign="'+o.id+'">🔁 تغيير الليفرور</button></div>':'';
     return'<div class="oc"><div class="st">'+st+(/À APPELER/.test(o.text)?' · 📞 À APPELER':'')+' · '+esc(t)+' · '+esc(o.kind==='colis'?'📦 Colis':'🛒 Commande')+'</div>'+(o.tel?'<div class="st">📞 <a href="tel:'+esc(o.tel)+'" style="color:#5fd0ff">'+esc(o.tel)+'</a></div>':'')+(/^https:\/\/maps\.google\.com\//.test(o.maps)?'<div class="st"><a href="'+esc(o.maps)+'" target="_blank" rel="noopener" style="color:#5fd0ff">📍 Ouvrir Google Maps</a></div>':'')+'<pre>'+esc(o.text)+'</pre>'+bt+'</div>';
   }
   return'<h1>🔔 Commandes</h1><button class="btn s" onclick="refresh()" style="margin-bottom:12px">🔄 Actualiser</button>'+(msg?'<div class="al">'+esc(msg)+'</div>':'')+
@@ -331,6 +331,7 @@ function cmdV(){
    (O.length?'<h2>Historique</h2>'+O.slice(0,20).map(card).join(''):'');
 }
 async function setSt(id,st){await fs('PATCH','/orders/'+id+'?updateMask.fieldPaths=status',{fields:{status:{stringValue:st}}});}
+async function assignCourier(id){try{if(!couriers.length)await loadCouriers();var ready=couriers.filter(function(x){return x.status==='approved';});if(!ready.length){alert('ما فما حتى ليفرور موافق عليه.');return;}var list=ready.map(function(x){return x.name+' — '+x.email;}).join('\\n');var email=prompt('اكتب Email متاع الليفرور:\\n'+list);if(!email)return;var d=ready.filter(function(x){return x.email.toLowerCase()===email.trim().toLowerCase();})[0];if(!d){alert('Email موش موجود في قائمة الليفرورات الموافق عليهم.');return;}await fs('PATCH','/orders/'+id+'?updateMask.fieldPaths=courierUid&updateMask.fieldPaths=status',{fields:{courierUid:{stringValue:d.id},status:{stringValue:'accepted'}}});await refresh();alert('تم تعيين الطلب لليفرور '+d.name);}catch(e){alert('تعذر تعيين الليفرور: '+e.message);}}
 function waNum(t){var d=String(t||'').replace(/\D/g,'');if(d.indexOf('00')===0)d=d.slice(2);if(d.length===8)d='216'+d;return d;}
 async function orderAccept(id){
   var o=orders.filter(function(x){return x.id===id;})[0];if(!o)return;
@@ -374,8 +375,8 @@ function restore(){
   catch(e){alert('Sauvegarde invalide');}
 }
 app.addEventListener('click',function(e){
-  var t=e.target.closest('[data-t],[data-pr],[data-del],[data-od],[data-oc],[data-oa],[data-ro],[data-re],[data-se],[data-rm]');if(!t)return;var d=t.dataset;
-  if(d.oa){orderAccept(d.oa);return;}
+  var t=e.target.closest('[data-t],[data-pr],[data-del],[data-od],[data-oc],[data-oa],[data-ro],[data-re],[data-se],[data-rm],[data-assign]');if(!t)return;var d=t.dataset;
+  if(d.oa){orderAccept(d.oa);return;}\n  if(d.assign){assignCourier(d.assign);return;}
   if(d.ro){toggleOpen(d.ro);return;}
   if(d.re){editRe(d.re);return;}
   if(d.se){editShop(d.se);return;}
