@@ -485,5 +485,6 @@ KH.orders=async function(){try{var s=await getDocs(query(collection(fdb,'orders'
 KH.order=function(o){o.uid=KH.user.uid;o.ts=new Date();return addDoc(collection(fdb,'orders'),o);};
 onAuthStateChanged(au,async function(u){KH.user=u;KH.profile=null;if(u){try{var d=await getDoc(doc(fdb,'clients',u.uid));if(d.exists())KH.profile=d.data();}catch(e){}}KH.ready=true;if(window.onAuth)window.onAuth();});
 </script>
+<script>if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js").catch(()=>{}));}</script>
 </body>
 </html>
