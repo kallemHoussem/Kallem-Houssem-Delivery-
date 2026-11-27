@@ -62,7 +62,7 @@ var KEY='kh_gestion_v1';
 var db={liv:[],fuel:[],chg:[],set:{vid:3000},pin:''};
 var FB={p:'kallem-houssem-gestion',k:'AIzaSyAt7Wn3ywa4KFyTy9LP7Iw1TI0oKRSMSwI'};
 var BASE='https://firestore.googleapis.com/v1/projects/'+FB.p+'/databases/default/documents';
-var auth={idToken:'',refresh:'',exp:0},logged=false,timer=null,sync='',orders=[],poll=null;
+var auth={idToken:'',refresh:'',exp:0},logged=false,timer=null,sync='',orders=[],poll=null,couriers=[];
 try{var a0=JSON.parse(localStorage.getItem('kh_auth')||'null');if(a0&&a0.refresh)auth.refresh=a0.refresh;}catch(e){}
 function setAuth(j){auth.idToken=j.idToken||j.id_token;auth.refresh=j.refreshToken||j.refresh_token;auth.exp=Date.now()+((+(j.expiresIn||j.expires_in)||3600)-60)*1000;try{localStorage.setItem('kh_auth',JSON.stringify({refresh:auth.refresh}));}catch(e){}}
 async function token(){
@@ -85,6 +85,9 @@ async function loadDb(){
   try{var j=await fs('GET','/gestion/main');var d=JSON.parse(j.fields.data.stringValue);db=Object.assign({liv:[],fuel:[],chg:[],set:{vid:3000}},d);}
   catch(e){if(e.code!==404)throw e;}
 }
+async function loadCouriers(){var r=await fs('POST',':runQuery',{structuredQuery:{from:[{collectionId:'couriers'}],limit:100}});couriers=(r||[]).filter(function(x){return x.document;}).map(function(x){var f=x.document.fields||{};return{id:x.document.name.split('/').pop(),name:gv(f.name),email:gv(f.email),phone:gv(f.phone),status:gv(f.status)||'pending'};});}
+async function setCourierStatus(id,status){await fs('PATCH','/couriers/'+id+'?updateMask.fieldPaths=status',{fields:{status:{stringValue:status}}});await loadCouriers();render();}
+function courV(){return'<h1>👥 طلبات انضمام الليفرورات</h1><button class="btn s" onclick="loadCouriers().then(render)">🔄 تحديث</button>'+(couriers.length?couriers.map(function(x){return'<div class="oc"><b>'+esc(x.name||'Livreur')+'</b><div class="st">'+esc(x.email)+' · '+esc(x.phone)+'</div><p>الحالة: '+esc(x.status)+'</p>'+(x.status==='pending'?'<button class="btn" onclick="setCourierStatus(\''+x.id+'\',\'approved\')">✅ قبول</button>':'')+(x.status==='approved'?'<button class="btn s" onclick="setCourierStatus(\''+x.id+'\',\'disabled\')">⛔ تعطيل</button>':'')+(x.status==='disabled'?'<button class="btn" onclick="setCourierStatus(\''+x.id+'\',\'approved\')">إعادة التفعيل</button>':'')+'</div>';}).join(''):'<p class="note">ما فما حتى طلب انضمام.</p>');}
 async function loadOrders(){
   var r=await fs('POST',':runQuery',{structuredQuery:{from:[{collectionId:'orders'}],orderBy:[{field:{fieldPath:'ts'},direction:'DESCENDING'}],limit:50}});
   orders=(r||[]).filter(function(x){return x.document;}).map(function(x){var f=x.document.fields||{};return{id:x.document.name.split('/').pop(),nom:gv(f.nom),adr:gv(f.adr),tel:gv(f.tel),maps:gv(f.maps),text:gv(f.text),kind:gv(f.kind),status:gv(f.status)||'new',ts:gv(f.ts)};});
@@ -345,12 +348,12 @@ async function orderDone(id){
 }
 async function orderCancel(id){if(!confirm('Annuler cette commande ?'))return;try{await setSt(id,'cancel');await refresh();}catch(e){alert('Échec : '+e.message);}}
 function nav(){
-  var T=[['cmd','🔔','Commandes'],['sum','📈','Rapport'],['liv','🛵','Livraisons'],['fuel','⛽','Carburant'],['chg','🔧','Charges'],['cat','📚','Catalogue']];
+  var T=[['cmd','🔔','Commandes'],['sum','📈','Rapport'],['liv','🛵','Livraisons'],['fuel','⛽','Carburant'],['chg','🔧','Charges'],['cat','📚','Catalogue'],['cour','👥','Livreurs']];
   return'<nav class="nv">'+T.map(function(t){return'<button data-t="'+t[0]+'" class="'+(tab===t[0]?'on':'')+'">'+t[1]+(t[0]==='cmd'&&newN()?'<b class="bd">'+newN()+'</b>':'')+'<small>'+t[2]+'</small></button>';}).join('')+'</nav>';
 }
 function render(){
   if(!logged){app.innerHTML=loginV();return;}
-  var h=tab==='cat'?catV():tab==='cmd'?cmdV():tab==='sum'?summary():tab==='liv'?livV():tab==='fuel'?fuelV():chgV();
+  var h=tab==='cat'?catV():tab==='cmd'?cmdV():tab==='sum'?summary():tab==='liv'?livV():tab==='fuel'?fuelV():tab==='cour'?courV():chgV();
   app.innerHTML=h+nav();
 }
 function ok(v){return isFinite(v)&&v>0;}
@@ -379,7 +382,7 @@ app.addEventListener('click',function(e){
   if(d.rm!==undefined){rmRow(+d.rm);return;}
   if(d.od){orderDone(d.od);return;}
   if(d.oc){orderCancel(d.oc);return;}
-  if(d.t){tab=d.t;render();window.scrollTo(0,0);if(tab==='cat'&&!cg.loaded)loadCat().then(render,function(e){msg='Catalogue : '+e.message;cg.loaded=true;render();});return;}
+  if(d.t){tab=d.t;render();window.scrollTo(0,0);if(tab==='cat'&&!cg.loaded)loadCat().then(render,function(e){msg='Catalogue : '+e.message;cg.loaded=true;render();});if(tab==='cour')loadCouriers().then(render,function(e){msg='Livreurs : '+e.message;render();});return;}
   if(d.pr){pr=d.pr;render();return;}
   if(d.del){if(!confirm('Supprimer cette ligne ?'))return;var p=d.del.split('|');db[p[0]]=db[p[0]].filter(function(x){return String(x.id)!==p[1];});save();render();}
 });
