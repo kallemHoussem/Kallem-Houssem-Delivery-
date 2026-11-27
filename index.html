@@ -514,19 +514,19 @@ onAuthStateChanged(au,async function(u){KH.user=u;KH.profile=null;if(u){try{var 
  if(!box||!btn)return;
  let installEvent=null;
  const standalone=()=>window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;
- const dismissed=()=>{try{return sessionStorage.getItem('jibli-install-dismissed')==='1'}catch(e){return false}};
+ const dismissed=()=>{try{return localStorage.getItem('jibli-install-dismissed')==='1'}catch(e){return false}};
  const hide=()=>box.classList.remove('show');
  const show=()=>{if(!standalone()&&!dismissed())box.classList.add('show')};
  if(standalone())return;
  window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installEvent=e;show();btn.textContent='تثبيت Jibli';help.hidden=true;});
- window.addEventListener('appinstalled',()=>{installEvent=null;hide();try{sessionStorage.setItem('jibli-install-dismissed','1')}catch(e){}});
+ window.addEventListener('appinstalled',()=>{installEvent=null;hide();try{localStorage.setItem('jibli-install-dismissed','1')}catch(e){}});
  btn.addEventListener('click',async()=>{
   if(installEvent){installEvent.prompt();const choice=await installEvent.userChoice;installEvent=null;if(choice&&choice.outcome==='accepted')hide();return;}
   const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);
   help.hidden=false;
   help.textContent=ios?'على iPhone: اضغط على زر المشاركة ⬆️ في Safari، وبعدها اختار “Add to Home Screen / Ajouter à l’écran d’accueil”، ثم اضغط Add.':'في Chrome: اضغط على ⋮ (الثلاث نقاط) ثم اختار “Install app / تثبيت التطبيق” أو “Add to Home screen / إضافة إلى الشاشة الرئيسية”.';
  });
- function dismiss(){hide();try{sessionStorage.setItem('jibli-install-dismissed','1')}catch(e){}}
+ function dismiss(){hide();try{localStorage.setItem('jibli-install-dismissed','1')}catch(e){}}
  later.addEventListener('click',dismiss);close.addEventListener('click',dismiss);
  window.addEventListener('load',()=>setTimeout(show,900));
 })();
