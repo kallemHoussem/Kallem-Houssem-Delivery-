@@ -93,6 +93,49 @@ h2.sec{font-size:1rem;margin:16px 0 8px;color:var(--acc)}
 #jibli-install .ji-later{background:rgba(255,255,255,.14);color:#fff}
 #jibli-install .ji-help{font-size:12px;line-height:1.55;margin:10px 2px 0;color:#e8f4ff}
 @keyframes jibliPop{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+/* Jibli modern storefront refresh */
+body{background:linear-gradient(180deg,#eaf3ff 0,#f5f8fc 42%,#eef3f9 100%) fixed;color:#10264b}
+#app{max-width:520px;padding:14px 14px 104px}
+.tb{background:#fff;border:1px solid #e6edf6;border-radius:18px;padding:10px 12px;box-shadow:0 5px 18px rgba(20,54,100,.07);margin-bottom:14px}
+.lar{color:#0b3d83}.len{color:#1684d7}
+.lg{background:#edf5ff;color:#0b4da8}
+.nv{background:rgba(255,255,255,.96);border-top:1px solid #e3ebf5;box-shadow:0 -5px 20px rgba(20,54,100,.08);backdrop-filter:blur(16px)}
+.nv button{color:#193b69}.nv button.on{color:#0877d1}
+.hi{color:#10264b}.tile,.rest,.pc,.item,.box,.again{background:#fff;color:#17365f;box-shadow:0 5px 18px rgba(20,54,100,.07)}
+.chip{background:#e7f0fb;color:#24466f}.chip.on{background:#0b69c7;color:#fff}
+input,textarea{border:1px solid #dce6f2;box-shadow:0 2px 8px rgba(20,54,100,.04)}
+.price{color:#0877c9}.sec{color:#0b5ed7}
+.jh-hero{position:relative;overflow:hidden;border-radius:26px;padding:22px 18px 16px;background:linear-gradient(135deg,#117bd5 0%,#0750a7 58%,#092c68 100%);color:#fff;box-shadow:0 14px 28px rgba(5,67,140,.22);margin:4px 0 22px}
+.jh-hero:after{content:"";position:absolute;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.09);right:-70px;top:-75px}
+.jh-kicker{font-size:10px;letter-spacing:2px;font-weight:900;color:#bfe5ff}
+.jh-hero h1{font-size:25px;line-height:1.45;margin:12px 0 7px;position:relative;z-index:1}
+.jh-hero p{font-size:13px;line-height:1.7;color:#e1f1ff;margin:0 0 15px;max-width:300px}
+.jh-search{width:100%;display:flex;align-items:center;gap:9px;border:0;border-radius:15px;background:#fff;color:#69809d;padding:13px 14px;font:inherit;font-size:13px;text-align:start;box-shadow:0 7px 18px rgba(0,0,0,.12);cursor:pointer}
+.jh-search b{margin-inline-start:auto;color:#0b69c7;font-size:20px}
+.jh-hero-foot{display:flex;justify-content:space-between;gap:5px;margin-top:15px;font-size:10px;color:#d9edff;font-weight:700}
+.jh-section-head{display:flex;align-items:end;justify-content:space-between;margin:18px 2px 11px;color:#17365f}
+.jh-section-head small{display:block;color:#6e86a3;font-size:11px;font-weight:700}
+.jh-section-head h2{font-size:17px;margin:2px 0 0;color:#102d55}
+.jh-section-head>span{font-size:11px;color:#7b91ad;font-weight:800}
+.jh-section-head button{border:0;background:transparent;color:#0877c9;font:inherit;font-size:12px;font-weight:800}
+.jh-services{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.jh-service{display:flex;align-items:center;gap:11px;text-align:start;padding:12px 10px;border:1px solid #e6edf5;border-radius:17px;background:#fff;color:#18375e;box-shadow:0 4px 13px rgba(20,54,100,.055);font:inherit;cursor:pointer;min-width:0}
+.jh-service-icon{display:grid;place-items:center;width:46px;height:46px;border-radius:14px;flex:none;font-size:23px;background:#e7f3ff}
+.jh-i1{background:#fff1df}.jh-i2{background:#e8f8ee}.jh-i3{background:#f1eaff}
+.jh-service b{display:block;font-size:12px}.jh-service small{display:block;color:#7a8ea8;font-size:10px;margin-top:3px}
+.jh-featured{display:grid;gap:9px}
+.jh-restaurant{display:flex;align-items:center;gap:11px;text-align:start;width:100%;padding:9px;border:1px solid #e6edf5;border-radius:16px;background:#fff;color:#17365f;box-shadow:0 4px 13px rgba(20,54,100,.05);font:inherit;cursor:pointer}
+.jh-rest-img{width:58px;height:58px;border-radius:13px;overflow:hidden;display:grid;place-items:center;flex:none;background:#edf4fb;font-size:25px}
+.jh-rest-img img{width:100%;height:100%;object-fit:cover}
+.jh-rest-info{flex:1;min-width:0}.jh-rest-info b{display:block;font-size:13px}.jh-rest-info small{display:block;font-size:11px;color:#7a8ea8;margin-top:4px}.jh-rest-info i{font-style:normal;color:#159b59;font-weight:800}
+.jh-restaurant>strong{font-size:24px;color:#7d93ad}
+.jh-promo{display:flex;align-items:center;gap:10px;margin:18px 0 8px;padding:14px;border-radius:18px;background:#e4f2ff;color:#164779}
+.jh-promo>span{font-size:25px}.jh-promo div{flex:1}.jh-promo b{display:block;font-size:12px}.jh-promo small{display:block;font-size:10px;color:#6683a4;margin-top:3px}
+.jh-promo button{border:0;background:#0b69c7;color:#fff;border-radius:11px;padding:9px 10px;font:inherit;font-size:10px;font-weight:800}
+.call{color:#54708f}
+@media(min-width:520px){#app{padding-left:18px;padding-right:18px}}
+
 </style>
 <meta name="theme-color" content="#0b5ed7">
 <link rel="manifest" href="./manifest.webmanifest">\n<link rel="apple-touch-icon" href="./icons/icon.svg">\n<meta name="apple-mobile-web-app-capable" content="yes">\n<meta name="apple-mobile-web-app-title" content="Jibli">\n<meta name="theme-color" content="#0b5ed7">
@@ -325,14 +368,21 @@ function itemH(r,i,sh){
    (n?'<button data-m="'+r.id+'|'+i+'">−</button><b>'+n+'</b>':'')+'<button class="add" data-p="'+r.id+'|'+i+'">+</button></div></div>';
 }
 function home(){
-  var T=[['restos','🍴','Restaurants'],['market','🛒','Supermarché'],['mcat:Fruits & légumes','🥕','Fruits & légumes'],['mcat:Boucherie','🥩','Boucherie'],['mcat:Boulangerie & Pâtisserie','🥖','Boulangerie & Pâtisserie'],['kiosk','🏪','Kiosque'],['colis','📦','Colis']];
-  var h='<input class="hq" placeholder="🔍 Chercher un plat, un produit…" readonly data-g="search"><div class="hi">Que voulez-vous ?</div><div class="t3">';
-  T.forEach(function(t,i){h+='<button class="tile c'+(i%4)+'" data-g="'+esc(t[0])+'"><span>'+t[1]+'</span>'+esc(t[2])+'</button>';});
-  h+='<a class="tile c3" href="'+wa('Bonjour Kallem Houssem 👋 J’ai besoin de la pharmacie ➕\nMédicaments :')+'" target="_blank" rel="noopener"><span>➕</span>Pharmacie</a>';
-  h+='<a class="tile c1" href="'+wa('Bonjour Kallem Houssem 👋 J’ai une demande :')+'" target="_blank" rel="noopener"><span>🏠</span>Autre demande</a></div>';
+  var T=[['restos','🍴','Restaurants','Commandez vos plats'],['market','🛒','Supermarché','Vos courses à domicile'],['mcat:Fruits & légumes','🥕','Fruits & légumes','Frais du jour'],['mcat:Boucherie','🥩','Boucherie','Viande et volaille'],['mcat:Boulangerie & Pâtisserie','🥐','Boulangerie','Pain et douceurs'],['kiosk','🏪','Kiosque','Les essentiels'],['colis','📦','Livraison colis','Envoyez vos colis']];
+  var h='<section class="jh-hero"><div class="jh-kicker">JIBLI · LIVRAISON À DOMICILE</div><h1>كل شي تحبّ عليه،<br>يوصلك حتى لباب دارك.</h1><p>مطاعم، قضايا الدار، وأكثر… اطلب بسهولة وخلي الباقي علينا.</p><button class="jh-search" data-g="search"><span>🔎</span> شنوّة تحب تطلب اليوم؟ <b>⌕</b></button><div class="jh-hero-foot"><span>⚡ طلب ساهل</span><span>🛵 توصيل سريع</span><span>💙 خدمة Jibli</span></div></section>';
+  h+='<div class="jh-section-head"><div><small>اكتشف خدماتنا</small><h2>تسوّق حسب الصنف</h2></div><span>Jibli</span></div><div class="jh-services">';
+  T.forEach(function(t,i){h+='<button class="jh-service" data-g="'+esc(t[0])+'"><span class="jh-service-icon jh-i'+(i%4)+'">'+t[1]+'</span><b>'+esc(t[2])+'</b><small>'+esc(t[3])+'</small></button>';});
+  h+='</div>';
+  var featured=R.filter(function(r){return r.cat&&r.open!==false;}).slice(0,4);
+  if(featured.length){h+='<div class="jh-section-head"><div><small>مختارين ليك</small><h2>مطاعم تنجم تعجبك</h2></div><button data-g="restos">الكل ←</button></div><div class="jh-featured">';
+    featured.forEach(function(r){h+='<button class="jh-restaurant" data-r="'+esc(r.id)+'"><span class="jh-rest-img">'+cov(r)+'</span><span class="jh-rest-info"><b>'+esc(r.name)+'</b><small>'+esc(r.cat)+' · <i>مفتوح</i></small></span><strong>›</strong></button>';});
+    h+='</div>';
+  }
+  h+='<section class="jh-promo"><span>💙</span><div><b>Jibli ديما قريب ليك</b><small>اختار، اطلب، وتابع طلبك من حسابك.</small></div><button data-g="account">حسابي ←</button></section>';
   var last=null;try{last=JSON.parse(localStorage.getItem('kh_last2')||'null');}catch(e){}
-  if(last&&!count()&&Object.keys(last).length)h+='<button class="again" data-g="again">🔁 Commander à nouveau</button>';
-  return h+'<a class="call" href="tel:+21654844804">Besoin d’aide ? 📞 54 844 804</a>';
+  if(last&&!count()&&Object.keys(last).length)h+='<button class="again" data-g="again">🔁 عاود آخر commande</button>';
+  h+='<a class="call" href="tel:+21654844804">تحتاج مساعدة؟ 📞 54 844 804</a>';
+  return h;
 }
 function search(){
   var h=back('home')+'<input id="sq" placeholder="🔍 Plat, produit, restaurant…" value="'+esc(sq)+'" style="flex:1"></div>',t=nz(sq.trim());
