@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="fr" dir="ltr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b5ed7"><title>Jibli | Espace livreur</title>
+<link rel="manifest" href="./manifest.webmanifest"><link rel="icon" href="./icons/icon.svg">
+<style>
+:root{color-scheme:dark;--bg:#061a45;--blue:#0b5ed7;--card:rgba(255,255,255,.1);--line:rgba(255,255,255,.14);--green:#25d366}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:linear-gradient(155deg,#1e90ff,var(--bg));font:16px system-ui,-apple-system,Segoe UI,sans-serif;color:#fff}
+main{max-width:520px;margin:auto;padding:22px 16px 50px}.brand{display:flex;align-items:center;gap:12px;margin:8px 0 24px}.brand img{width:52px;height:52px;border-radius:15px}.brand strong{font-size:24px}.brand small{display:block;opacity:.75}
+.panel,.job{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin:12px 0;backdrop-filter:blur(12px)}
+h1{font-size:21px;margin:0 0 12px}h2{font-size:17px;margin:0 0 8px}
+label{display:block;font-size:13px;opacity:.85;margin:10px 0 5px}input{width:100%;padding:13px;border:0;border-radius:12px;font:inherit;color:#08214d;background:#fff}
+button{width:100%;border:0;border-radius:13px;padding:14px;margin-top:10px;background:var(--green);color:#fff;font:inherit;font-weight:700;cursor:pointer}.secondary{background:rgba(255,255,255,.14)}button:disabled{opacity:.55}
+.muted{opacity:.75;font-size:13px;line-height:1.5}.status{border-radius:12px;padding:12px;background:rgba(255,190,60,.18);margin:12px 0}.error{background:rgba(255,80,80,.2)}.good{background:rgba(37,211,102,.16)}
+.row{display:flex;gap:8px;flex-wrap:wrap}.row button{flex:1;min-width:130px}.job pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit}.job a{color:#9cddff}.hide{display:none}
+</style></head>
+<body><main>
+<header class="brand"><img src="./icons/icon.svg" alt="Jibli"><div><strong>Jibli</strong><small>Espace livreur · Bizerte</small></div></header>
+<div id="app"><section class="panel"><h1>Chargement…</h1></section></div>
+</main>
+<script>
+(function(){
+'use strict';
+const API_KEY='AIzaSyAt7Wn3ywa4KFyTy9LP7Iw1TI0oKRSMSwI';
+const PROJECT='kallem-houssem-gestion';
+const DOC='https://firestore.googleapis.com/v1/projects/'+PROJECT+'/databases/default/documents';
+const AUTH='https://identitytoolkit.googleapis.com/v1/accounts';
+const app=document.getElementById('app');let user=null,token='',refreshToken='',profile=null,orders=[],busy=false;
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function fields(obj){const out={};Object.keys(obj).forEach(k=>{const v=obj[k];out[k]=typeof v==='boolean'?{booleanValue:v}:typeof v==='number'?{integerValue:String(v)}:{stringValue:String(v==null?'':v)};});return out;}
+function val(v){if(!v)return'';return v.stringValue??v.booleanValue??v.integerValue??v.doubleValue??v.timestampValue??'';}
+function data(doc){const o={};Object.keys(doc.fields||{}).forEach(k=>o[k]=val(doc.fields[k]));return o;}
+async function request(url,opts={}){const r=await fetch(url,opts);const j=await r.json().catch(()=>({}));if(!r.ok)throw Error(j.error?.message||'HTTP '+r.status);return j;}
+async function authCall(action,payload){return request(AUTH+':'+action+'?key='+API_KEY,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...payload,returnSecureToken:true})});}
+async function saveAuth(j){user=j.localId;token=j.idToken;refreshToken=j.refreshToken;try{sessionStorage.setItem('jibli_courier_auth',JSON.stringify({user,refreshToken}));}catch(e){}}
+async function freshToken(){if(token)return token;let saved;try{saved=JSON.parse(sessionStorage.getItem('jibli_courier_auth')||'null')}catch(e){}if(!saved?.refreshToken)throw Error('Session expirée. Reconnectez-vous.');const j=await request('https://securetoken.googleapis.com/v1/token?key='+API_KEY,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'grant_type=refresh_token&refresh_token='+encodeURIComponent(saved.refreshToken)});user=j.user_id;token=j.id_token;refreshToken=j.refresh_token;return token;}
+async function fs(method,path,body){const t=await freshToken();return request(DOC+path,{method,headers:{Authorization:'Bearer '+t,'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});}
+async function loadProfile(){try{const j=await fs('GET','/couriers/'+user);profile=data(j);return true;}catch(e){if(String(e.message).includes('NOT_FOUND'))return false;throw e;}}
+function authView(){app.innerHTML='<section class="panel"><h1>Connexion livreur</h1><p class="muted">Connectez-vous ou créez votre demande d’inscription. L’activation nécessite l’accord de l’administration.</p><label>Nom complet</label><input id="name" autocomplete="name" placeholder="Votre nom"><label>Téléphone</label><input id="phone" inputmode="tel" autocomplete="tel" placeholder="Votre numéro"><label>Email</label><input id="email" type="email" autocomplete="email" placeholder="nom@email.com"><label>Mot de passe</label><input id="password" type="password" autocomplete="current-password" placeholder="Mot de passe"><div class="row"><button id="signin">Se connecter</button><button id="signup" class="secondary">Demander l’accès</button></div><div id="msg" class="muted" role="status"></div></section>';}
+function message(t,kind='status'){let e=document.getElementById('msg');if(e){e.className=kind;e.textContent=t;}}
+async function signIn(){if(busy)return;busy=true;message('Connexion…');try{const j=await authCall('signInWithPassword',{email:document.getElementById('email').value.trim(),password:document.getElementById('password').value});await saveAuth(j);await enter();}catch(e){message('Connexion impossible : '+e.message,'status error');}finally{busy=false;}}
+async function signUp(){if(busy)return;const name=document.getElementById('name').value.trim(),phone=document.getElementById('phone').value.trim(),email=document.getElementById('email').value.trim(),password=document.getElementById('password').value;if(!name||!phone||!email||password.length<6){message('Remplissez tous les champs. Le mot de passe doit contenir au moins 6 caractères.','status error');return;}busy=true;message('Création de votre demande…');try{const j=await authCall('signUp',{email,password});await saveAuth(j);const profileData={name,phone,email,status:'pending',createdAt:new Date().toISOString()};await fs('PATCH','/couriers/'+user+'?'+Object.keys(profileData).map(k=>'updateMask.fieldPaths='+encodeURIComponent(k)).join('&'),{fields:fields(profileData)});profile=profileData;render();}catch(e){message('Inscription impossible : '+e.message,'status error');}finally{busy=false;}}
+async function enter(){const exists=await loadProfile();if(!exists){profile=null;render();return;}render();if(profile.status==='approved')await loadOrders();}
+async function loadOrders(){try{const q={structuredQuery:{from:[{collectionId:'orders'}],where:{fieldFilter:{field:{fieldPath:'courierUid'},op:'EQUAL',value:{stringValue:user}}},limit:50}};const r=await fs('POST',':runQuery',q);orders=(r||[]).filter(x=>x.document).map(x=>({id:x.document.name.split('/').pop(),...data(x.document)}));render();}catch(e){orders=[];render('Impossible de charger les courses : '+e.message);}}
+function dashboard(err=''){const st=profile?.status||'pending';if(st!=='approved'){app.innerHTML='<section class="panel"><h1>Demande reçue</h1><div class="status '+(st==='disabled'?'error':'')+'">'+(st==='disabled'?'Votre accès est suspendu. Contactez l’administration.':'Votre compte est en attente de validation par l’administration.')+'</div><p class="muted">Vous pourrez consulter et mettre à jour vos livraisons après approbation.</p><button class="secondary" id="logout">Déconnexion</button></section>';return;}app.innerHTML='<section class="panel"><h1>Bonjour '+esc(profile.name||'Livreur')+' 👋</h1><p class="muted">Vos livraisons attribuées apparaissent ici.</p><button id="refresh" class="secondary">Actualiser</button><div id="msg" class="muted">'+esc(err)+'</div></section>'+ (orders.length?orders.map(o=>'<section class="job"><h2>Commande · '+esc(o.id.slice(-7))+'</h2><p>'+esc(o.nom||'Client')+' · '+esc(o.tel||'')+'</p><pre>'+esc(o.text||'Détails de commande indisponibles')+'</pre>'+(o.adr?'<p>📍 '+esc(o.adr)+'</p>':'')+(o.maps&&/^https:\/\//.test(o.maps)?'<p><a href="'+esc(o.maps)+'" target="_blank" rel="noopener">Ouvrir la destination</a></p>':'')+'<p class="muted">État : '+esc(o.status||'new')+'</p>'+(o.status==='accepted'?'<button data-done="'+esc(o.id)+'">Marquer comme livrée</button>':'')+'</section>').join(''):'<section class="panel"><h2>Aucune livraison attribuée</h2><p class="muted">Dès que l’administration vous attribue une commande, elle apparaîtra ici.</p></section>')+'<button class="secondary" id="logout">Déconnexion</button>';}
+function render(err=''){if(!user){authView();return;}dashboard(err);}
+async function complete(id){if(!confirm('Confirmer que cette commande est livrée ?'))return;try{await fs('PATCH','/orders/'+id+'?updateMask.fieldPaths=status',{fields:{status:{stringValue:'done'}}});await loadOrders();}catch(e){render('Mise à jour impossible : '+e.message);}}
+app.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;if(t.id==='signin')signIn();if(t.id==='signup')signUp();if(t.id==='logout'){sessionStorage.removeItem('jibli_courier_auth');user=null;token='';refreshToken='';profile=null;orders=[];render();}if(t.id==='refresh')loadOrders();if(t.dataset.done)complete(t.dataset.done);});
+(async()=>{try{const saved=JSON.parse(sessionStorage.getItem('jibli_courier_auth')||'null');if(saved?.user&&saved?.refreshToken){user=saved.user;refreshToken=saved.refreshToken;await freshToken();await enter();}else render();}catch(e){sessionStorage.removeItem('jibli_courier_auth');user=null;render();}})();
+})();
+</script>
+<script>if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js').catch(()=>{}));</script>
+</body></html>
