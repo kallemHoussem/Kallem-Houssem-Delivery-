@@ -376,7 +376,8 @@ function restore(){
 }
 app.addEventListener('click',function(e){
   var t=e.target.closest('[data-t],[data-pr],[data-del],[data-od],[data-oc],[data-oa],[data-ro],[data-re],[data-se],[data-rm],[data-assign]');if(!t)return;var d=t.dataset;
-  if(d.oa){orderAccept(d.oa);return;}\n  if(d.assign){assignCourier(d.assign);return;}
+  if(d.oa){orderAccept(d.oa);return;}
+  if(d.assign){assignCourier(d.assign);return;}
   if(d.ro){toggleOpen(d.ro);return;}
   if(d.re){editRe(d.re);return;}
   if(d.se){editShop(d.se);return;}
