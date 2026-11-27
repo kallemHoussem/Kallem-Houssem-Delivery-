@@ -318,11 +318,11 @@ function loginV(){
   return'<h1>🔒 Gestion – Houssem</h1><div class="box"><label>Email</label><input id="em" type="email" autocomplete="username"><label>Mot de passe</label><input id="pw" type="password" autocomplete="current-password"><button class="btn" onclick="login()">Se connecter</button></div><p class="note">'+esc(msg)+'</p>';
 }
 function cmdV(){
-  var N=orders.filter(function(o){return o.status==='new';}),A=orders.filter(function(o){return o.status==='accepted';}),O=orders.filter(function(o){return o.status==='done'||o.status==='cancel';});
+  var N=orders.filter(function(o){return o.status==='new';}),A=orders.filter(function(o){return o.status==='confirmed'||o.status==='accepted';}),O=orders.filter(function(o){return o.status==='done'||o.status==='cancel';});
   function card(o){
     var t=o.ts?new Date(o.ts).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'';
-    var st=o.status==='done'?'✅ Livrée':o.status==='cancel'?'✖ Annulée':o.status==='accepted'?'🛵 En cours':'🆕 Nouvelle';
-    var bt=o.status==='new'?'<div class="ac"><button class="btn" data-oa="'+o.id+'">✅ Accepter</button><button class="btn s" data-oc="'+o.id+'">✖</button><button class="btn s" data-assign="'+o.id+'">🛵 تعيين ليفرور</button></div>':o.status==='accepted'?'<div class="ac"><button class="btn" data-od="'+o.id+'">🛵 Livrée</button><button class="btn s" data-oc="'+o.id+'">✖</button><button class="btn s" data-assign="'+o.id+'">🔁 تغيير الليفرور</button></div>':'';
+    var st=o.status==='done'?'✅ Livrée':o.status==='cancel'?'✖ Annulée':o.status==='accepted'?'🛵 Avec livreur':o.status==='confirmed'?'✅ Confirmée · à attribuer':'🆕 Nouvelle';
+    var bt=o.status==='new'?'<div class="ac"><button class="btn" data-oa="'+o.id+'">✅ Confirmer</button><button class="btn s" data-oc="'+o.id+'">✖</button></div>':o.status==='confirmed'?'<div class="ac"><button class="btn" data-assign="'+o.id+'">🛵 Attribuer un livreur</button><button class="btn s" data-oc="'+o.id+'">✖</button></div>':o.status==='accepted'?'<div class="ac"><button class="btn" data-od="'+o.id+'">🛵 Livrée</button><button class="btn s" data-oc="'+o.id+'">✖</button><button class="btn s" data-assign="'+o.id+'">🔁 Changer livreur</button></div>':'';
     return'<div class="oc"><div class="st">'+st+(/À APPELER/.test(o.text)?' · 📞 À APPELER':'')+' · '+esc(t)+' · '+esc(o.kind==='colis'?'📦 Colis':'🛒 Commande')+'</div>'+(o.tel?'<div class="st">📞 <a href="tel:'+esc(o.tel)+'" style="color:#5fd0ff">'+esc(o.tel)+'</a></div>':'')+(/^https:\/\/maps\.google\.com\//.test(o.maps)?'<div class="st"><a href="'+esc(o.maps)+'" target="_blank" rel="noopener" style="color:#5fd0ff">📍 Ouvrir Google Maps</a></div>':'')+'<pre>'+esc(o.text)+'</pre>'+bt+'</div>';
   }
   return'<h1>🔔 Commandes</h1><button class="btn s" onclick="refresh()" style="margin-bottom:12px">🔄 Actualiser</button>'+(msg?'<div class="al">'+esc(msg)+'</div>':'')+
@@ -335,10 +335,12 @@ async function assignCourier(id){try{if(!couriers.length)await loadCouriers();va
 function waNum(t){var d=String(t||'').replace(/\D/g,'');if(d.indexOf('00')===0)d=d.slice(2);if(d.length===8)d='216'+d;return d;}
 async function orderAccept(id){
   var o=orders.filter(function(x){return x.id===id;})[0];if(!o)return;
-  if(/À APPELER/.test(o.text)){alert('Client sans WhatsApp : appelez-le au '+(o.tel||'(numéro indiqué)'));}else if(o.tel&&waNum(o.tel).length>=10){
-    window.open('https://wa.me/'+waNum(o.tel)+'?text='+encodeURIComponent('Bonjour '+(o.nom||'')+' 👋\nVotre commande est acceptée ✅\nNotre livreur la prépare et arrive bientôt 🛵\n— Kallem Houssem Livraison'),'_blank');
-  }else alert('Pas de numéro pour ce client : la commande est acceptée sans message.');
-  try{await setSt(id,'accepted');await refresh();}catch(e){alert('Échec : '+e.message);}
+  try{
+    await setSt(id,'confirmed');
+    if(/À APPELER/.test(o.text)){alert('Commande confirmée. Appelez le client au '+(o.tel||'(numéro indiqué)')+' puis attribuez un livreur.');}
+    else if(o.tel&&waNum(o.tel).length>=10){window.open('https://wa.me/'+waNum(o.tel)+'?text='+encodeURIComponent('Bonjour '+(o.nom||'')+' 👋\nVotre commande Jibli est confirmée ✅ Nous préparons votre livraison et nous vous attribuons un livreur.\n— Jibli'),'_blank');}
+    await refresh();
+  }catch(e){alert('Échec : '+e.message);}
 }
 async function orderDone(id){
   var o=orders.filter(function(x){return x.id===id;})[0];if(!o)return;
