@@ -333,7 +333,7 @@ function account(){
 }
 function loadMo(){
   KH.orders().then(function(a){var e=document.getElementById('mo');if(!e)return;
-    e.innerHTML=a.length?a.map(function(o){var d=o.ts&&o.ts.seconds?new Date(o.ts.seconds*1000).toLocaleDateString('fr-FR'):'';var st=o.status==='done'?'✅ Livrée':o.status==='cancel'?'✖ Annulée':'🕐 En cours';
+    e.innerHTML=a.length?a.map(function(o){var d=o.ts&&o.ts.seconds?new Date(o.ts.seconds*1000).toLocaleDateString('fr-FR'):'';var st=o.status==='done'?'✅ تمّ التسليم':o.status==='cancel'?'✖ ملغاة':o.status==='accepted'?'🛵 مع الليفرور':o.status==='confirmed'?'✅ الإدارة أكّدت الطلب':'🕐 نستناو في تأكيد الطلب';
       return'<div class="item" style="display:block"><small class="sr">'+esc(d)+' · '+st+'</small><div style="white-space:pre-wrap;font-size:.85rem">'+esc(o.text||'')+'</div></div>';}).join(''):'Aucune commande pour le moment.';if(lang==='ar')trDom(e);});
 }
 async function accGo(){var em=document.getElementById('ae').value.trim(),pw=document.getElementById('ap').value;accMsg='…';render();
