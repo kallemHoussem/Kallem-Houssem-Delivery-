@@ -41,3 +41,7 @@ Install prompts depend on a supported browser and HTTPS. iPhone users may need S
 ## Release status
 
 Work is prepared on `jibli-modern-v2`. The `main` branch, live Firebase configuration, and production data have not been changed. No merge or production deployment has been performed.
+
+## Firestore rules tests
+
+Install the development dependencies with `npm install`, then run `npm run test:rules`. This starts only the local Firestore Emulator using the non-production project ID `demo-jibli` and exercises guest checkout, customer ownership, courier approval, assignment, delivery completion, and denied access. It does not connect to Firebase production.
