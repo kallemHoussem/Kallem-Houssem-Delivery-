@@ -24,7 +24,7 @@ button{width:100%;border:0;border-radius:13px;padding:14px;margin-top:10px;backg
 'use strict';
 const API_KEY='AIzaSyAt7Wn3ywa4KFyTy9LP7Iw1TI0oKRSMSwI';
 const PROJECT='kallem-houssem-gestion';
-const DOC='https://firestore.googleapis.com/v1/projects/'+PROJECT+'/databases/default/documents';
+const DOC='https://firestore.googleapis.com/v1/projects/'+PROJECT+'/databases/(default)/documents';
 const AUTH='https://identitytoolkit.googleapis.com/v1/accounts';
 const app=document.getElementById('app');let user=null,token='',refreshToken='',profile=null,orders=[],busy=false;
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
