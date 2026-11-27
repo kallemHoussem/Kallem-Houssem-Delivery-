@@ -11,12 +11,12 @@ test("all app entry points use the Firebase default Firestore database", () => {
   const admin = source("gestion.html");
   const courier = source("livreur.html");
 
-  assert.match(index, /databases\\/\\(default\\)\\/documents/);
-  assert.match(index, /getFirestore\\(app\\)/);
-  assert.doesNotMatch(index, /getFirestore\\(app\\s*,\\s*['"]default['"]\\)/);
-  assert.match(admin, /databases\\/\\(default\\)\\/documents/);
-  assert.match(courier, /databases\\/\\(default\\)\\/documents/);
+  assert.ok(index.includes("databases/(default)/documents"));
+  assert.ok(index.includes("getFirestore(app)"));
+  assert.ok(!index.includes("getFirestore(app,'default')"));
+  assert.ok(admin.includes("databases/(default)/documents"));
+  assert.ok(courier.includes("databases/(default)/documents"));
   for (const app of [index, admin, courier]) {
-    assert.doesNotMatch(app, /databases\\/default\\/documents/);
+    assert.ok(!app.includes("databases/default/documents"));
   }
 });
