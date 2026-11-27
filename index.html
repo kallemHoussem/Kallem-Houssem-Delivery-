@@ -275,10 +275,7 @@ function total(){var t=0,u=false;for(var k in cart){var p=k.split('|'),it=src(p[
 function lab(r){return r.id==='mkt'?'🛒 Supermarché':r.id==='ksk'?'🏪 Kiosque':'🍴 '+r.name;}
 var FB={p:'kallem-houssem-gestion',k:'AIzaSyAt7Wn3ywa4KFyTy9LP7Iw1TI0oKRSMSwI'};
 var FSBASE='https://firestore.googleapis.com/v1/projects/'+FB.p+'/databases/default/documents';
-var NT='kh-livraison-61371ec8ce';
-function pingNtfy(kind){try{fetch('https://ntfy.sh/'+NT,{method:'POST',headers:{'Title':'Kallem Houssem','Priority':'high','Tags':'bell','Click':'https://kallemhoussem.github.io/Kallem-Houssem-Delivery-/gestion.html'},body:kind==='colis'?'📦 Nouveau colis – ouvre la gestion':'🆕 Nouvelle commande – ouvre la gestion'}).catch(function(){});}catch(e){}}
 function logOrderP(kind,text,nom,adr,total,tel,maps){
-  pingNtfy(kind);
   var f={kind:kind,nom:String(nom||'').slice(0,100),adr:String(adr||'').slice(0,200),text:String(text).slice(0,2500),total:+total||0,status:'new',tel:String(tel||'').slice(0,30),maps:String(maps||'').slice(0,200)};
   try{
     if(window.KH&&KH.user)return KH.order(f).then(function(){return true;},function(){return false;});
@@ -491,7 +488,7 @@ function prep(needTel){
   m+='👤 '+n+'\n';if(tel)m+='📞 '+tel+'\n';if(a)m+='🏠 '+a+'\n';if(maps)m+='📍 '+maps+'\n';if(rem)m+='📝 '+rem+'\n';
   return{m:m,n:n,a:a,tel:tel,maps:maps,t:s.t};
 }
-function send(){var o=prep(false);if(!o)return;var fin=o.m+(o.maps?'':'📍 Je vous envoie ma position.');logOrder('commande',fin,o.n,o.a,o.t,o.tel,o.maps);window.open(wa(fin),'_blank');}
+function send(){var o=prep(false);if(!o)return;var fin=o.m+(o.maps?'':'📍 Je vous envoie ma position.');window.open(wa(fin),'_blank');logOrderP('commande',fin,o.n,o.a,o.t,o.tel,o.maps).then(function(ok){if(!ok)alert('تعذّر تسجيل الطلب في النظام. تم فتح واتساب؛ أعد المحاولة أو اتصل بنا للتأكيد.');});}
 function sendDirect(){
   var o=prep(true);if(!o)return;
   var fin=o.m+'📞 À APPELER (sans WhatsApp)\n'+(o.maps?'':'📍 Position non partagée : demander l’adresse par téléphone.\n');

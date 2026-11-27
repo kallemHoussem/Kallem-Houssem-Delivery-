@@ -61,10 +61,11 @@ textarea{min-height:70px}
 var KEY='kh_gestion_v1';
 var db={liv:[],fuel:[],chg:[],set:{vid:3000},pin:''};
 var FB={p:'kallem-houssem-gestion',k:'AIzaSyAt7Wn3ywa4KFyTy9LP7Iw1TI0oKRSMSwI'};
+var ADMIN_UID='f4vrNGRMPCZGXiVPLp6lg9BerZP2';
 var BASE='https://firestore.googleapis.com/v1/projects/'+FB.p+'/databases/default/documents';
 var auth={idToken:'',refresh:'',exp:0},logged=false,timer=null,sync='',orders=[],poll=null,couriers=[];
-try{var a0=JSON.parse(localStorage.getItem('kh_auth')||'null');if(a0&&a0.refresh)auth.refresh=a0.refresh;}catch(e){}
-function setAuth(j){auth.idToken=j.idToken||j.id_token;auth.refresh=j.refreshToken||j.refresh_token;auth.exp=Date.now()+((+(j.expiresIn||j.expires_in)||3600)-60)*1000;try{localStorage.setItem('kh_auth',JSON.stringify({refresh:auth.refresh}));}catch(e){}}
+try{var a0=JSON.parse(sessionStorage.getItem('kh_auth')||'null');if(a0&&a0.refresh)auth.refresh=a0.refresh;}catch(e){}
+function setAuth(j){var uid=j.localId||j.local_id||j.user_id;if(uid!==ADMIN_UID)throw new Error('unauthorized');auth.idToken=j.idToken||j.id_token;auth.refresh=j.refreshToken||j.refresh_token;auth.exp=Date.now()+((+(j.expiresIn||j.expires_in)||3600)-60)*1000;try{sessionStorage.setItem('kh_auth',JSON.stringify({refresh:auth.refresh}));}catch(e){}}
 async function token(){
   if(auth.idToken&&Date.now()<auth.exp)return auth.idToken;
   if(!auth.refresh)throw new Error('login');
@@ -107,9 +108,9 @@ async function login(){
   var em=val('em'),pw=document.getElementById('pw').value;msg='Connexion…';render();
   try{var r=await fetch('https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key='+FB.k,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:em,password:pw,returnSecureToken:true})});
     var j=await r.json();if(!r.ok)throw new Error((j.error&&j.error.message)||'erreur');setAuth(j);msg='';await boot();}
-  catch(e){msg='Connexion refusée : '+e.message;logged=false;render();}
+  catch(e){msg=e.message==='unauthorized'?'Ce compte n’a pas les droits d’administration.':'Connexion refusée : '+e.message;logged=false;try{sessionStorage.removeItem('kh_auth');}catch(x){}auth={idToken:'',refresh:'',exp:0};render();}
 }
-function logout(){try{localStorage.removeItem('kh_auth');}catch(e){}auth={idToken:'',refresh:'',exp:0};logged=false;clearInterval(poll);msg='';render();}
+function logout(){try{sessionStorage.removeItem('kh_auth');}catch(e){}auth={idToken:'',refresh:'',exp:0};logged=false;clearInterval(poll);msg='';render();}
 var app=document.getElementById('app'),tab='cmd',pr='mois',msg='';
 var TYPES=['Vidange','Pneus','Réparation','Pièces','Assurance','Vignette','Contrôle technique','Lavage','Autre'];
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
@@ -349,7 +350,7 @@ async function orderDone(id){
   try{await setSt(id,'done');}catch(e){alert('Échec : '+e.message);return;}
   db.liv.push({id:Date.now(),d:today(),m:m,km:0,n:(o.nom||'')+' '+(o.adr||'')});save();await refresh();
 }
-async function orderCancel(id){if(!confirm('Annuler cette commande ?'))return;try{await setSt(id,'cancel');await refresh();}catch(e){alert('Échec : '+e.message);}}
+async function orderCancel(id){if(!confirm('Annuler cette commande ?'))return;try{await fs('PATCH','/orders/'+id+'?updateMask.fieldPaths=status&updateMask.fieldPaths=courierUid',{fields:{status:{stringValue:'cancel'},courierUid:{stringValue:''}}});await refresh();}catch(e){alert('Échec : '+e.message);}}
 function nav(){
   var T=[['cmd','🔔','Commandes'],['sum','📈','Rapport'],['liv','🛵','Livraisons'],['fuel','⛽','Carburant'],['chg','🔧','Charges'],['cat','📚','Catalogue'],['cour','👥','Livreurs']];
   return'<nav class="nv">'+T.map(function(t){return'<button data-t="'+t[0]+'" class="'+(tab===t[0]?'on':'')+'">'+t[1]+(t[0]==='cmd'&&newN()?'<b class="bd">'+newN()+'</b>':'')+'<small>'+t[2]+'</small></button>';}).join('')+'</nav>';
