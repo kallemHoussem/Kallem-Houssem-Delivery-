@@ -77,9 +77,25 @@ textarea{min-height:64px;resize:vertical}
 h2.sec{font-size:1rem;margin:16px 0 8px;color:var(--acc)}
 .note{font-size:.85rem;opacity:.85;text-align:center;margin:8px 0}
 .empty{text-align:center;opacity:.85;padding:30px 0}
+
+/* Jibli install invitation */
+#jibli-install{position:fixed;z-index:99999;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));max-width:456px;margin:auto;padding:14px 14px 13px;border:1px solid rgba(255,255,255,.28);border-radius:20px;background:linear-gradient(135deg,#0b5ed7,#061a45);box-shadow:0 12px 38px rgba(0,0,0,.35);display:none;color:#fff;font-family:system-ui,-apple-system,sans-serif}
+#jibli-install.show{display:block;animation:jibliPop .28s ease-out}
+#jibli-install .ji-row{display:flex;align-items:center;gap:11px}
+#jibli-install .ji-icon{width:48px;height:48px;border-radius:13px;flex:none;background:#fff;padding:3px}
+#jibli-install .ji-copy{flex:1;min-width:0}
+#jibli-install .ji-copy b{display:block;font-size:15px}
+#jibli-install .ji-copy small{display:block;font-size:12px;opacity:.86;line-height:1.4;margin-top:2px}
+#jibli-install .ji-close{border:0;background:rgba(255,255,255,.16);color:#fff;border-radius:50%;width:30px;height:30px;font-size:19px;flex:none}
+#jibli-install .ji-actions{display:flex;gap:8px;margin-top:11px}
+#jibli-install .ji-actions button{flex:1;border:0;border-radius:12px;padding:11px 8px;font-weight:800;font-size:14px;cursor:pointer}
+#jibli-install .ji-primary{background:#fff;color:#0b4da8}
+#jibli-install .ji-later{background:rgba(255,255,255,.14);color:#fff}
+#jibli-install .ji-help{font-size:12px;line-height:1.55;margin:10px 2px 0;color:#e8f4ff}
+@keyframes jibliPop{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
 </style>
 <meta name="theme-color" content="#0b5ed7">
-<link rel="manifest" href="./manifest.webmanifest">
+<link rel="manifest" href="./manifest.webmanifest">\n<link rel="apple-touch-icon" href="./icons/icon.svg">\n<meta name="apple-mobile-web-app-capable" content="yes">\n<meta name="apple-mobile-web-app-title" content="Jibli">\n<meta name="theme-color" content="#0b5ed7">
 <link rel="icon" type="image/svg+xml" href="./icons/icon.svg">
 </head>
 <body>
@@ -486,5 +502,34 @@ KH.order=function(o){o.uid=KH.user.uid;o.ts=new Date();return addDoc(collection(
 onAuthStateChanged(au,async function(u){KH.user=u;KH.profile=null;if(u){try{var d=await getDoc(doc(fdb,'clients',u.uid));if(d.exists())KH.profile=d.data();}catch(e){}}KH.ready=true;if(window.onAuth)window.onAuth();});
 </script>
 <script>if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js").catch(()=>{}));}</script>
+
+<div id="jibli-install" role="dialog" aria-label="Installer Jibli" aria-live="polite">
+ <div class="ji-row"><img class="ji-icon" src="./icons/icon.svg" alt="Jibli"><div class="ji-copy"><b>هبّط Jibli في تلفونك 📲</b><small>ثبّت التطبيق وخليه ديما قدّامك، كيف أي تطبيق آخر.</small></div><button class="ji-close" id="jibli-install-close" aria-label="إغلاق">×</button></div>
+ <div class="ji-actions"><button class="ji-primary" id="jibli-install-action">تثبيت Jibli</button><button class="ji-later" id="jibli-install-later">موش توا</button></div>
+ <p class="ji-help" id="jibli-install-help" hidden></p>
+</div>
+<script>
+(function(){
+ const box=document.getElementById('jibli-install'),btn=document.getElementById('jibli-install-action'),later=document.getElementById('jibli-install-later'),close=document.getElementById('jibli-install-close'),help=document.getElementById('jibli-install-help');
+ if(!box||!btn)return;
+ let installEvent=null;
+ const standalone=()=>window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;
+ const dismissed=()=>{try{return sessionStorage.getItem('jibli-install-dismissed')==='1'}catch(e){return false}};
+ const hide=()=>box.classList.remove('show');
+ const show=()=>{if(!standalone()&&!dismissed())box.classList.add('show')};
+ if(standalone())return;
+ window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installEvent=e;show();btn.textContent='تثبيت Jibli';help.hidden=true;});
+ window.addEventListener('appinstalled',()=>{installEvent=null;hide();try{sessionStorage.setItem('jibli-install-dismissed','1')}catch(e){}});
+ btn.addEventListener('click',async()=>{
+  if(installEvent){installEvent.prompt();const choice=await installEvent.userChoice;installEvent=null;if(choice&&choice.outcome==='accepted')hide();return;}
+  const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);
+  help.hidden=false;
+  help.textContent=ios?'على iPhone: اضغط على زر المشاركة ⬆️ في Safari، وبعدها اختار “Add to Home Screen / Ajouter à l’écran d’accueil”، ثم اضغط Add.':'في Chrome: اضغط على ⋮ (الثلاث نقاط) ثم اختار “Install app / تثبيت التطبيق” أو “Add to Home screen / إضافة إلى الشاشة الرئيسية”.';
+ });
+ function dismiss(){hide();try{sessionStorage.setItem('jibli-install-dismissed','1')}catch(e){}}
+ later.addEventListener('click',dismiss);close.addEventListener('click',dismiss);
+ window.addEventListener('load',()=>setTimeout(show,900));
+})();
+</script>
 </body>
 </html>
