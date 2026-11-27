@@ -1,17 +1,26 @@
 # Jibli
 
-Jibli is a mobile-first delivery web app. The customer experience is served from `index.html`; administration is served from `gestion.html`.
+Jibli is a mobile-first delivery web app.
+
+## App entry points
+- `index.html`: customer storefront and checkout.
+- `livreur.html`: courier sign-in, pending approval, and assigned deliveries.
+- `gestion.html`: admin dashboard, order management, courier approvals, and courier assignment.
 
 ## Progressive Web App
-- Installable manifest at `manifest.webmanifest`.
-- Static-shell service worker at `service-worker.js`.
-- Firebase/API requests are intentionally not cached; order and account operations require a network connection.
+- Installable manifest: `manifest.webmanifest`.
+- Static-shell service worker: `service-worker.js`.
+- Firebase/API requests are intentionally not cached; account and order operations require a network connection.
 
-## Important deployment and security notes
-- Keep Firebase Authentication and Firestore security rules configured in the Firebase Console before production use.
+## Firebase setup required before production
+- Review `firestore.rules` against the live Firebase project and deploy them from the Firebase Console/CLI. The file in this branch is a proposed ruleset; it has NOT been deployed.
+- The rules use `ay3afsa@gmail.com` as the administrator email.
+- Confirm Firebase Authentication email/password and the customer Google provider are enabled as needed.
+- Test guest checkout, signed-in customer orders, courier application, admin approval, courier assignment, and courier delivery completion with test accounts.
 - Do not put service-account credentials or private keys in this repository.
-- The courier screen is not present in the current `main` branch snapshot. A courier workflow must be implemented with server-enforced courier approval and order assignment before it is exposed; client-side hiding is not authorization.
-- Deploy this branch only after testing Firebase sign-in, order creation, admin permissions, and Firestore rules.
+
+## Important safety note
+The current customer checkout still supports guest orders. The proposed Firestore rules permit guest order creation but prevent guests from reading or modifying orders. Review abuse controls and the exact production data model before deployment.
 
 ## Branch
-This work is being prepared on `jibli-modern-v2`; the production `main` branch is unchanged.
+Changes are prepared on `jibli-modern-v2`. The production `main` branch has not been changed or deployed.
