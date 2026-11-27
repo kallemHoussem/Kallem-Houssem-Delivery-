@@ -1,0 +1,112 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    // The existing administrator account in Firebase Authentication.
+    // Update this UID only through a reviewed rules change if the admin account is replaced.
+    function isAdmin() {
+      return signedIn() && request.auth.uid == 'f4vrNGRMPCZGXiVPLp6lg9BerZP2';
+    }
+
+    function isApprovedCourier() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/couriers/$(request.auth.uid))
+        && get(/databases/$(database)/documents/couriers/$(request.auth.uid)).data.status == 'approved';
+    }
+
+    function validOrder(data) {
+      return data.keys().hasAll(['kind', 'nom', 'adr', 'text', 'total', 'status', 'tel', 'maps', 'ts'])
+        && data.keys().hasOnly(['kind', 'nom', 'adr', 'text', 'total', 'status', 'tel', 'maps', 'ts', 'uid', 'courierUid'])
+        && data.kind is string && data.kind.size() <= 40
+        && data.nom is string && data.nom.size() > 0 && data.nom.size() <= 100
+        && data.adr is string && data.adr.size() <= 200
+        && data.text is string && data.text.size() <= 2500
+        && data.total is number && data.total >= 0 && data.total <= 10000000
+        && data.status is string
+        && data.tel is string && data.tel.size() <= 30
+        && data.maps is string && data.maps.size() <= 200
+        && data.ts is timestamp;
+    }
+
+    match /orders/{orderId} {
+      // Guests may place an order but cannot attach it to an account or read it later.
+      allow create: if validOrder(request.resource.data)
+        && request.resource.data.status == 'new'
+        && !('courierUid' in request.resource.data)
+        && (!('uid' in request.resource.data)
+          || (signedIn() && request.resource.data.uid == request.auth.uid));
+
+      allow read: if isAdmin()
+        || (signedIn() && resource.data.uid == request.auth.uid)
+        || (isApprovedCourier() && resource.data.courierUid == request.auth.uid);
+
+      // Admin actions used by the app: confirm/cancel, assign or reassign an approved courier,
+      // and mark an order done. Courier updates are limited to delivery completion.
+      allow update: if isAdmin()
+        && validOrder(request.resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'courierUid'])
+        && request.resource.data.status in ['new', 'confirmed', 'accepted', 'done', 'cancel']
+        && (request.resource.data.status != 'accepted'
+          || (request.resource.data.courierUid is string
+            && exists(/databases/$(database)/documents/couriers/$(request.resource.data.courierUid))
+            && get(/databases/$(database)/documents/couriers/$(request.resource.data.courierUid)).data.status == 'approved'))
+        || (isApprovedCourier()
+          && resource.data.courierUid == request.auth.uid
+          && resource.data.status == 'accepted'
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+          && request.resource.data.status == 'done');
+
+      allow delete: if isAdmin();
+    }
+
+    match /couriers/{courierId} {
+      allow create: if signedIn()
+        && request.auth.uid == courierId
+        && request.resource.data.keys().hasAll(['name', 'phone', 'email', 'status', 'createdAt'])
+        && request.resource.data.keys().hasOnly(['name', 'phone', 'email', 'status', 'createdAt'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 100
+        && request.resource.data.phone is string && request.resource.data.phone.size() <= 30
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.status == 'pending'
+        && request.resource.data.createdAt is string
+        && request.resource.data.createdAt.size() <= 40;
+
+      allow read: if isAdmin() || (signedIn() && request.auth.uid == courierId);
+      allow update, delete: if isAdmin();
+    }
+
+    match /clients/{clientId} {
+      allow read: if isAdmin() || (signedIn() && request.auth.uid == clientId);
+      allow create, update: if signedIn()
+        && request.auth.uid == clientId
+        && request.resource.data.keys().hasOnly(['nom', 'tel', 'adr', 'ok', 'lat', 'lng'])
+        && request.resource.data.nom is string && request.resource.data.nom.size() <= 100
+        && request.resource.data.tel is string && request.resource.data.tel.size() <= 30
+        && request.resource.data.adr is string && request.resource.data.adr.size() <= 200
+        && request.resource.data.ok is bool
+        && (!('lat' in request.resource.data) || request.resource.data.lat is number)
+        && (!('lng' in request.resource.data) || request.resource.data.lng is number);
+      allow delete: if isAdmin();
+    }
+
+    match /gestion/{docId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /restaurants/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /shops/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Unlisted collections are denied by default.
+  }
+}

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Kallem Houssem – Livraison Bizerte</title>
+<title>Jibli | Livraison facile</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Cairo:wght@800&display=swap" rel="stylesheet">
 <style>
 :root{box-sizing:border-box;--bg1:#0a2a6b;--bg2:#1e90ff;--card:rgba(255,255,255,.14);--acc:#5fd0ff;--wa:#25d366;--orange:#e8873a;--field:#fff;--ft:#0a2a6b;padding-top:env(safe-area-inset-top,0px)}
@@ -77,7 +77,73 @@ textarea{min-height:64px;resize:vertical}
 h2.sec{font-size:1rem;margin:16px 0 8px;color:var(--acc)}
 .note{font-size:.85rem;opacity:.85;text-align:center;margin:8px 0}
 .empty{text-align:center;opacity:.85;padding:30px 0}
+
+/* Jibli install invitation */
+#jibli-install{position:fixed;z-index:99999;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));max-width:456px;margin:auto;padding:14px 14px 13px;border:1px solid rgba(255,255,255,.28);border-radius:20px;background:linear-gradient(135deg,#0b5ed7,#061a45);box-shadow:0 12px 38px rgba(0,0,0,.35);display:none;color:#fff;font-family:system-ui,-apple-system,sans-serif}
+#jibli-install.show{display:block;animation:jibliPop .28s ease-out}
+#jibli-install .ji-row{display:flex;align-items:center;gap:11px}
+#jibli-install .ji-icon{width:48px;height:48px;border-radius:13px;flex:none;background:#fff;padding:3px}
+#jibli-install .ji-copy{flex:1;min-width:0}
+#jibli-install .ji-copy b{display:block;font-size:15px}
+#jibli-install .ji-copy small{display:block;font-size:12px;opacity:.86;line-height:1.4;margin-top:2px}
+#jibli-install .ji-close{border:0;background:rgba(255,255,255,.16);color:#fff;border-radius:50%;width:30px;height:30px;font-size:19px;flex:none}
+#jibli-install .ji-actions{display:flex;gap:8px;margin-top:11px}
+#jibli-install .ji-actions button{flex:1;border:0;border-radius:12px;padding:11px 8px;font-weight:800;font-size:14px;cursor:pointer}
+#jibli-install .ji-primary{background:#fff;color:#0b4da8}
+#jibli-install .ji-later{background:rgba(255,255,255,.14);color:#fff}
+#jibli-install .ji-help{font-size:12px;line-height:1.55;margin:10px 2px 0;color:#e8f4ff}
+@keyframes jibliPop{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+/* Jibli modern storefront refresh */
+body{background:linear-gradient(180deg,#eaf3ff 0,#f5f8fc 42%,#eef3f9 100%) fixed;color:#10264b}
+#app{max-width:520px;padding:14px 14px 104px}
+.tb{background:#fff;border:1px solid #e6edf6;border-radius:18px;padding:10px 12px;box-shadow:0 5px 18px rgba(20,54,100,.07);margin-bottom:14px}.jibli-mark{width:40px;height:40px;display:grid;place-items:center;border-radius:13px;background:linear-gradient(135deg,#168ce0,#082f70);color:#fff;font-size:25px;font-weight:950;font-style:italic;box-shadow:0 5px 12px rgba(11,94,215,.22);flex:none}
+.lar{color:#0b3d83}.len{color:#1684d7}
+.lg{background:#edf5ff;color:#0b4da8}
+.nv{background:rgba(255,255,255,.96);border-top:1px solid #e3ebf5;box-shadow:0 -5px 20px rgba(20,54,100,.08);backdrop-filter:blur(16px)}
+.nv button{color:#193b69}.nv button.on{color:#0877d1}
+.hi{color:#10264b}.tile,.rest,.pc,.item,.box,.again{background:#fff;color:#17365f;box-shadow:0 5px 18px rgba(20,54,100,.07)}
+.chip{background:#e7f0fb;color:#24466f}.chip.on{background:#0b69c7;color:#fff}
+input,textarea{border:1px solid #dce6f2;box-shadow:0 2px 8px rgba(20,54,100,.04)}
+.price{color:#0877c9}.sec{color:#0b5ed7}
+.jh-hero{position:relative;overflow:hidden;border-radius:26px;padding:22px 18px 16px;background:linear-gradient(135deg,#117bd5 0%,#0750a7 58%,#092c68 100%);color:#fff;box-shadow:0 14px 28px rgba(5,67,140,.22);margin:4px 0 22px}
+.jh-hero:after{content:"";position:absolute;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.09);right:-70px;top:-75px}
+.jh-kicker{font-size:10px;letter-spacing:2px;font-weight:900;color:#bfe5ff}
+.jh-hero h1{font-size:25px;line-height:1.45;margin:12px 0 7px;position:relative;z-index:1}
+.jh-hero p{font-size:13px;line-height:1.7;color:#e1f1ff;margin:0 0 15px;max-width:300px}
+.jh-search{width:100%;display:flex;align-items:center;gap:9px;border:0;border-radius:15px;background:#fff;color:#69809d;padding:13px 14px;font:inherit;font-size:13px;text-align:start;box-shadow:0 7px 18px rgba(0,0,0,.12);cursor:pointer}
+.jh-search b{margin-inline-start:auto;color:#0b69c7;font-size:20px}
+.jh-hero-foot{display:flex;justify-content:space-between;gap:5px;margin-top:15px;font-size:10px;color:#d9edff;font-weight:700}
+.jh-section-head{display:flex;align-items:end;justify-content:space-between;margin:18px 2px 11px;color:#17365f}
+.jh-section-head small{display:block;color:#6e86a3;font-size:11px;font-weight:700}
+.jh-section-head h2{font-size:17px;margin:2px 0 0;color:#102d55}
+.jh-section-head>span{font-size:11px;color:#7b91ad;font-weight:800}
+.jh-section-head button{border:0;background:transparent;color:#0877c9;font:inherit;font-size:12px;font-weight:800}
+.jh-services{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.jh-service{display:flex;align-items:center;gap:11px;text-align:start;padding:12px 10px;border:1px solid #e6edf5;border-radius:17px;background:#fff;color:#18375e;box-shadow:0 4px 13px rgba(20,54,100,.055);font:inherit;cursor:pointer;min-width:0}
+.jh-service-icon{display:grid;place-items:center;width:46px;height:46px;border-radius:14px;flex:none;font-size:23px;background:#e7f3ff}
+.jh-i1{background:#fff1df}.jh-i2{background:#e8f8ee}.jh-i3{background:#f1eaff}
+.jh-service b{display:block;font-size:12px}.jh-service small{display:block;color:#7a8ea8;font-size:10px;margin-top:3px}
+.jh-featured{display:grid;gap:9px}
+.jh-restaurant{display:flex;align-items:center;gap:11px;text-align:start;width:100%;padding:9px;border:1px solid #e6edf5;border-radius:16px;background:#fff;color:#17365f;box-shadow:0 4px 13px rgba(20,54,100,.05);font:inherit;cursor:pointer}
+.jh-rest-img{width:58px;height:58px;border-radius:13px;overflow:hidden;display:grid;place-items:center;flex:none;background:#edf4fb;font-size:25px}
+.jh-rest-img img{width:100%;height:100%;object-fit:cover}
+.jh-rest-info{flex:1;min-width:0}.jh-rest-info b{display:block;font-size:13px}.jh-rest-info small{display:block;font-size:11px;color:#7a8ea8;margin-top:4px}.jh-rest-info i{font-style:normal;color:#159b59;font-weight:800}
+.jh-restaurant>strong{font-size:24px;color:#7d93ad}
+.jh-promo{display:flex;align-items:center;gap:10px;margin:18px 0 8px;padding:14px;border-radius:18px;background:#e4f2ff;color:#164779}
+.jh-promo>span{font-size:25px}.jh-promo div{flex:1}.jh-promo b{display:block;font-size:12px}.jh-promo small{display:block;font-size:10px;color:#6683a4;margin-top:3px}
+.jh-promo button{border:0;background:#0b69c7;color:#fff;border-radius:11px;padding:9px 10px;font:inherit;font-size:10px;font-weight:800}
+.call{color:#54708f}
+@media(min-width:520px){#app{padding-left:18px;padding-right:18px}}
+
 </style>
+<meta name="theme-color" content="#0b5ed7">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Jibli">
+<meta name="theme-color" content="#0b5ed7">
+<link rel="icon" type="image/svg+xml" href="./icons/icon.svg">
 </head>
 <body>
 <div id="app"></div>
@@ -181,7 +247,7 @@ var KS={id:'ksk',name:'Kiosque',lab:'Kiosque',emoji:'🏪',items:[
 ]};
 R.push(MK);R.push(KS);
 // ====================================================================
-var TOP='<div class="tb"><svg viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5fd0ff"/><stop offset="1" stop-color="#1e90ff"/></linearGradient></defs><rect width="40" height="40" rx="12" fill="url(#g)"/><path fill="#0a2a6b" transform="translate(9 9) scale(.9)" d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1l-2.3 2.2z"/></svg><div class="lt"><div class="lar" dir="rtl">كلم حسام</div><div class="len">KALLEM HOUSSEM</div></div></div>';
+var TOP='<div class="tb"><div class="jibli-mark" aria-hidden="true">J</div><div class="lt"><div class="lar" dir="rtl">جبلي</div><div class="len">JIBLI · DELIVERY</div></div></div>';
 var lang='fr';try{lang=localStorage.getItem('kh_lang')||'fr';}catch(e){}
 var AR={"Fermé":"مسكّر","Ce restaurant est fermé pour le moment.":"هذا المطعم مسكّر توا.","Accueil": "الرئيسية", "Recherche": "بحث", "Panier": "السلة", "Compte": "حسابي", "Chercher un plat, un produit…": "ابحث على أكلة أو منتوج…", "Que voulez-vous ?": "شنوة تحب ؟", "Restaurants": "مطاعم", "Supermarché": "سوبرماركت", "Fruits & légumes": "خضرة وغلة", "Boucherie": "جزار", "Boulangerie & Pâtisserie": "مخبزة وحلويات", "Kiosque": "كشك", "Colis": "طرود", "Pharmacie": "صيدلية", "Autre demande": "طلب آخر", "Commander à nouveau": "عاود آخر طلبية", "Besoin d’aide ? 📞 54 844 804": "تحب مساعدة ؟ 📞 54 844 804", "Chercher un restaurant…": "ابحث على مطعم…", "Tous": "الكل", "Aucun restaurant trouvé": "ما لقينا حتى مطعم", "Ouvert": "مفتوح", "Pizza": "بيتزا", "Tacos": "طاكوس", "Burger": "برغر", "Sandwich": "ساندويتش", "Tout": "الكل", "Frais": "منتجات طازجة", "Épicerie": "بقالة", "Boissons": "مشروبات", "Nettoyage": "تنظيف", "Hygiène & bébé": "نظافة وبيبي", "Tickets & recharges": "تذاكر وشحن", "Tabac +18": "تبغ (+18)", "Graines & snacks": "زريعة وسناك", "Bonbons & chocolat": "حلوى وشوكولا", "prix en magasin": "السعر حسب المحل", "Un produit n’est pas dans la liste ? Écrivez-le dans la remarque du panier.": "منتوج ما كانش في القائمة ؟ أكتبو في ملاحظة السلة.", "Tickets et tabac : précisez le montant ou la marque dans la remarque du panier.": "للتذاكر والتبغ : حدد المبلغ أو الماركة في ملاحظة السلة.", "Mon panier": "سلتي", "Votre panier est vide": "السلة فارغة", "Commencer mes achats": "ابدأ التسوق", "Total articles": "مجموع المشتريات", "Votre nom": "إسمك", "Téléphone": "الهاتف", "Adresse / repère": "العنوان / علامة", "Remarque (optionnel)": "ملاحظة (اختياري)", "Lieu de livraison": "مكان التوصيل", "Adresse enregistrée": "العنوان المسجل", "Ma position actuelle": "موقعي الحالي", "Touchez « Ma position actuelle » pour une livraison plus rapide, ou envoyez-la sur WhatsApp.": "إضغط « موقعي الحالي » باش يوصلك أسرع، ولا ابعثو في واتساب.", "Livraison à votre position actuelle": "التوصيل لموقعك الحالي", "Livraison à votre adresse enregistrée": "التوصيل لعنوانك المسجل", "Vos informations servent uniquement à la livraison.": "معلوماتك تستعمل كان للتوصيل.", "Le numéro est facultatif avec WhatsApp, obligatoire sinon.": "الرقم اختياري مع واتساب، وإجباري كان ما تستعملش واتساب.", "Commander sur WhatsApp": "أطلب عبر واتساب", "Commander sans WhatsApp (nous vous appelons)": "أطلب بدون واتساب (نكلموك)", "Créez un compte pour enregistrer vos infos (facultatif)": "أعمل حساب باش تسجل معلوماتك (اختياري)", "Envoi de votre commande…": "جاري إرسال طلبك…", "Commande envoyée ! Nous vous appelons bientôt.": "الطلب وصل ! باش نكلموك قريب.", "Échec de l’envoi. Appelez-nous au 54 844 804 ou utilisez WhatsApp.": "الإرسال فشل. كلمنا على 54 844 804 ولا استعمل واتساب.", "Retour à l’accueil": "رجوع للرئيسية", "Mon compte": "حسابي", "Connexion": "الدخول", "Créer un compte": "إنشاء حساب", "Email": "البريد الإلكتروني", "Mot de passe": "كلمة السر", "Se connecter": "دخول", "Créer mon compte": "إنشاء حسابي", "Mot de passe oublié ?": "نسيت كلمة السر ؟", "Continuer avec Google": "المواصلة بواسطة Google", "Le compte est facultatif : vous pouvez commander sans compte. Il sert à enregistrer vos infos une seule fois.": "الحساب اختياري : تنجم تطلب من غير حساب. يخدم باش تسجل معلوماتك مرة وحدة.", "Nom": "الإسم", "Téléphone (WhatsApp)": "الهاتف (واتساب)", "Utiliser ma position actuelle": "استعمل موقعي الحالي", "Position enregistrée": "الموقع مسجل", "J’accepte que mes données (nom, téléphone, adresse, position) soient enregistrées pour mes livraisons.": "نقبل باش معلوماتي (الإسم، الهاتف، العنوان، الموقع) تتسجل للتوصيل متاعي.", "Enregistrer": "تسجيل", "Se déconnecter": "خروج", "Mes commandes": "طلباتي", "Aucune commande pour le moment.": "ما فما حتى طلب توا.", "Chargement…": "تحميل…", "Connexion indisponible pour le moment. Vous pouvez commander sans compte.": "الدخول غير متاح توا. تنجم تطلب من غير حساب.", "Livrée": "تسلّمت", "Annulée": "ملغاة", "En cours": "في الطريق", "Adresse de départ (où récupérer)": "عنوان الانطلاق (وين نجيبو)", "Adresse d’arrivée (où livrer)": "عنوان الوصول (وين نوصلو)", "Nom et téléphone du destinataire": "إسم ورقم المستلم", "Description du colis": "وصف الطرد", "Envoyer sur WhatsApp": "ابعث عبر واتساب", "Plat, produit, restaurant…": "أكلة، منتوج، مطعم…", "Essayez :": "جرّب :", "Aucun résultat.": "ما لقينا حتى نتيجة.", "Écrivez votre demande dans la remarque du panier.": "أكتب طلبك في ملاحظة السلة.", "Choisissez le lieu de livraison": "إختار مكان التوصيل", "Entrez votre nom": "أكتب إسمك", "Entrez votre numéro de téléphone": "أكتب رقم هاتفك", "Numéro de téléphone invalide": "رقم الهاتف غير صحيح", "Position indisponible. Autorisez la localisation dans votre navigateur.": "الموقع غير متاح. إسمح بالموقع في المتصفح.", "Produit réservé aux personnes de 18 ans et plus. Avez-vous 18 ans ou plus ?": "منتوج للي عمرهم 18 عام وأكثر. عمرك 18 عام ولا أكثر ؟", "Votre panier contient une autre commande. Le vider ?": "السلة فيها طلب آخر. نفرغها ؟", "Tomates": "طماطم", "Pommes de terre": "بطاطا", "Oignons": "بصل", "Carottes": "جزر", "Concombre": "خيار", "Poivron": "فلفل", "Courgette": "قرعة", "Salade": "سلاطة", "Ail": "ثوم", "Persil / coriandre": "معدنوس / قزبر", "Bananes": "موز", "Pommes": "تفاح", "Oranges": "برتقال", "Citrons": "ليمون", "Fraises": "فراولة", "Raisin": "عنب", "Viande hachée": "لحم مفروم", "Escalope de poulet": "إسكالوب دجاج", "Poulet entier": "دجاج كامل", "Agneau": "علوش", "Merguez": "مرقاز", "Dinde": "ديك رومي", "Poisson": "حوت", "Lait 1L": "حليب 1 لتر", "Œufs (plateau)": "بيض (صحن)", "Yaourt": "ياغورت", "Fromage": "فرماج", "Beurre": "زبدة", "Baguette": "باغات", "Pain tabouna": "خبز طابونة", "Pain complet": "خبز كامل", "Mlawi": "ملاوي", "Croissant": "كرواسون", "Pain au chocolat": "بان أو شوكولا", "Mille-feuille": "ميل فاي", "Éclair": "إكلير", "Makroudh": "مقروض", "Baklawa": "بقلاوة", "Tarte": "تارت", "Gâteau (sur commande)": "غاتو (على الطلب)", "Biscuits": "بسكويت", "Huile 1L": "زيت 1 لتر", "Sucre 1kg": "سكر 1 كغ", "Farine 1kg": "فرينة 1 كغ", "Pâtes 500g": "مقرونة 500 غ", "Couscous": "كسكسي", "Riz 1kg": "أرز 1 كغ", "Harissa": "هريسة", "Thon (boîte)": "تن (علبة)", "Café": "قهوة", "Thé": "أتاي", "Légumineuses (vrac)": "قطاني (فرط)", "Épices": "بزار", "Eau 1,5L": "ماء 1,5 لتر", "Eau 5L": "ماء 5 لتر", "Jus": "عصير", "Soda": "صودا", "Lessive": "مسحوق غسيل", "Liquide vaisselle": "سائل أواني", "Javel": "جافيل", "Nettoyant sol": "منظف أرضية", "Éponges": "إسفنج", "Sacs poubelle": "أكياس زبالة", "Papier toilette": "ورق تواليت", "Savon": "صابون", "Shampoing": "شامبو", "Dentifrice": "معجون أسنان", "Déodorant": "مزيل عرق", "Couches bébé": "حفاضات بيبي", "Carte recharge Ooredoo": "بطاقة شحن أوريدو", "Carte recharge Orange": "بطاقة شحن أورنج", "Carte recharge Tunisie Telecom": "بطاقة شحن إتصالات تونس", "Ticket recharge Ooredoo": "تيكي شحن أوريدو", "Ticket recharge Orange": "تيكي شحن أورنج", "Ticket recharge Tunisie Telecom": "تيكي شحن إتصالات تونس", "Cigarettes (marque à préciser)": "سجائر (حدد الماركة)", "Tabac à rouler": "تبغ للف", "Papier à rouler": "ورق للف", "Briquet": "ولاعة", "Graines de tournesol": "زريعة", "Graines de courge": "بزر القرع", "Cacahuètes": "كاكاوية", "Leblebi (pois chiches grillés)": "لبلابي", "Chips": "شيبس", "Chewing-gum": "علك", "Bonbons": "حلوى", "Chocolat": "شوكولا", "←": "→"},SUB=[["Produits payés au prix du magasin. ", "المنتجات تتخلص بسعر المحل. "], ["Plusieurs commerces : ", "عدة محلات : "], ["frais de livraison confirmés par WhatsApp.", "معلوم التوصيل يتأكد عبر واتساب."], ["Vous semblez être à", "يبان إنك على بعد"], [" km de votre adresse enregistrée. Où livrer ?", " كم من عنوانك المسجل. وين نوصلو ؟"], ["Connecté : ", "متصل : "]];
 function trStr(t){
@@ -212,11 +278,8 @@ function count(){var c=0;for(var k in cart)c+=cart[k];return c;}
 function total(){var t=0,u=false;for(var k in cart){var p=k.split('|'),it=src(p[0]).items[p[1]];if(it.p==null)u=true;else t+=it.p*cart[k];}return{t:t,u:u};}
 function lab(r){return r.id==='mkt'?'🛒 Supermarché':r.id==='ksk'?'🏪 Kiosque':'🍴 '+r.name;}
 var FB={p:'kallem-houssem-gestion',k:'AIzaSyAt7Wn3ywa4KFyTy9LP7Iw1TI0oKRSMSwI'};
-var FSBASE='https://firestore.googleapis.com/v1/projects/'+FB.p+'/databases/default/documents';
-var NT='kh-livraison-61371ec8ce';
-function pingNtfy(kind){try{fetch('https://ntfy.sh/'+NT,{method:'POST',headers:{'Title':'Kallem Houssem','Priority':'high','Tags':'bell','Click':'https://kallemhoussem.github.io/Kallem-Houssem-Delivery-/gestion.html'},body:kind==='colis'?'📦 Nouveau colis – ouvre la gestion':'🆕 Nouvelle commande – ouvre la gestion'}).catch(function(){});}catch(e){}}
+var FSBASE='https://firestore.googleapis.com/v1/projects/'+FB.p+'/databases/(default)/documents';
 function logOrderP(kind,text,nom,adr,total,tel,maps){
-  pingNtfy(kind);
   var f={kind:kind,nom:String(nom||'').slice(0,100),adr:String(adr||'').slice(0,200),text:String(text).slice(0,2500),total:+total||0,status:'new',tel:String(tel||'').slice(0,30),maps:String(maps||'').slice(0,200)};
   try{
     if(window.KH&&KH.user)return KH.order(f).then(function(){return true;},function(){return false;});
@@ -271,7 +334,7 @@ function account(){
 }
 function loadMo(){
   KH.orders().then(function(a){var e=document.getElementById('mo');if(!e)return;
-    e.innerHTML=a.length?a.map(function(o){var d=o.ts&&o.ts.seconds?new Date(o.ts.seconds*1000).toLocaleDateString('fr-FR'):'';var st=o.status==='done'?'✅ Livrée':o.status==='cancel'?'✖ Annulée':'🕐 En cours';
+    e.innerHTML=a.length?a.map(function(o){var d=o.ts&&o.ts.seconds?new Date(o.ts.seconds*1000).toLocaleDateString('fr-FR'):'';var st=o.status==='done'?'✅ تمّ التسليم':o.status==='cancel'?'✖ ملغاة':o.status==='accepted'?'🛵 مع الليفرور':o.status==='confirmed'?'✅ الإدارة أكّدت الطلب':'🕐 نستناو في تأكيد الطلب';
       return'<div class="item" style="display:block"><small class="sr">'+esc(d)+' · '+st+'</small><div style="white-space:pre-wrap;font-size:.85rem">'+esc(o.text||'')+'</div></div>';}).join(''):'Aucune commande pour le moment.';if(lang==='ar')trDom(e);});
 }
 async function accGo(){var em=document.getElementById('ae').value.trim(),pw=document.getElementById('ap').value;accMsg='…';render();
@@ -306,14 +369,21 @@ function itemH(r,i,sh){
    (n?'<button data-m="'+r.id+'|'+i+'">−</button><b>'+n+'</b>':'')+'<button class="add" data-p="'+r.id+'|'+i+'">+</button></div></div>';
 }
 function home(){
-  var T=[['restos','🍴','Restaurants'],['market','🛒','Supermarché'],['mcat:Fruits & légumes','🥕','Fruits & légumes'],['mcat:Boucherie','🥩','Boucherie'],['mcat:Boulangerie & Pâtisserie','🥖','Boulangerie & Pâtisserie'],['kiosk','🏪','Kiosque'],['colis','📦','Colis']];
-  var h='<input class="hq" placeholder="🔍 Chercher un plat, un produit…" readonly data-g="search"><div class="hi">Que voulez-vous ?</div><div class="t3">';
-  T.forEach(function(t,i){h+='<button class="tile c'+(i%4)+'" data-g="'+esc(t[0])+'"><span>'+t[1]+'</span>'+esc(t[2])+'</button>';});
-  h+='<a class="tile c3" href="'+wa('Bonjour Kallem Houssem 👋 J’ai besoin de la pharmacie ➕\nMédicaments :')+'" target="_blank" rel="noopener"><span>➕</span>Pharmacie</a>';
-  h+='<a class="tile c1" href="'+wa('Bonjour Kallem Houssem 👋 J’ai une demande :')+'" target="_blank" rel="noopener"><span>🏠</span>Autre demande</a></div>';
+  var T=[['restos','🍴','Restaurants','Commandez vos plats'],['market','🛒','Supermarché','Vos courses à domicile'],['mcat:Fruits & légumes','🥕','Fruits & légumes','Frais du jour'],['mcat:Boucherie','🥩','Boucherie','Viande et volaille'],['mcat:Boulangerie & Pâtisserie','🥐','Boulangerie','Pain et douceurs'],['kiosk','🏪','Kiosque','Les essentiels'],['colis','📦','Livraison colis','Envoyez vos colis']];
+  var h='<section class="jh-hero"><div class="jh-kicker">JIBLI · LIVRAISON À DOMICILE</div><h1>كل شي تحبّ عليه،<br>يوصلك حتى لباب دارك.</h1><p>مطاعم، قضايا الدار، وأكثر… اطلب بسهولة وخلي الباقي علينا.</p><button class="jh-search" data-g="search"><span>🔎</span> شنوّة تحب تطلب اليوم؟ <b>⌕</b></button><div class="jh-hero-foot"><span>⚡ طلب ساهل</span><span>🛵 توصيل سريع</span><span>💙 خدمة Jibli</span></div></section>';
+  h+='<div class="jh-section-head"><div><small>اكتشف خدماتنا</small><h2>تسوّق حسب الصنف</h2></div><span>Jibli</span></div><div class="jh-services">';
+  T.forEach(function(t,i){h+='<button class="jh-service" data-g="'+esc(t[0])+'"><span class="jh-service-icon jh-i'+(i%4)+'">'+t[1]+'</span><b>'+esc(t[2])+'</b><small>'+esc(t[3])+'</small></button>';});
+  h+='</div>';
+  var featured=R.filter(function(r){return r.cat&&r.open!==false;}).slice(0,4);
+  if(featured.length){h+='<div class="jh-section-head"><div><small>مختارين ليك</small><h2>مطاعم تنجم تعجبك</h2></div><button data-g="restos">الكل ←</button></div><div class="jh-featured">';
+    featured.forEach(function(r){h+='<button class="jh-restaurant" data-r="'+esc(r.id)+'"><span class="jh-rest-img">'+cov(r)+'</span><span class="jh-rest-info"><b>'+esc(r.name)+'</b><small>'+esc(r.cat)+' · <i>مفتوح</i></small></span><strong>›</strong></button>';});
+    h+='</div>';
+  }
+  h+='<section class="jh-promo"><span>💙</span><div><b>Jibli ديما قريب ليك</b><small>اختار، اطلب، وتابع طلبك من حسابك.</small></div><button data-g="account">حسابي ←</button></section>';
   var last=null;try{last=JSON.parse(localStorage.getItem('kh_last2')||'null');}catch(e){}
-  if(last&&!count()&&Object.keys(last).length)h+='<button class="again" data-g="again">🔁 Commander à nouveau</button>';
-  return h+'<a class="call" href="tel:+21654844804">Besoin d’aide ? 📞 54 844 804</a>';
+  if(last&&!count()&&Object.keys(last).length)h+='<button class="again" data-g="again">🔁 عاود آخر commande</button>';
+  h+='<a class="call" href="tel:+21654844804">تحتاج مساعدة؟ 📞 54 844 804</a>';
+  return h;
 }
 function search(){
   var h=back('home')+'<input id="sq" placeholder="🔍 Plat, produit, restaurant…" value="'+esc(sq)+'" style="flex:1"></div>',t=nz(sq.trim());
@@ -422,7 +492,7 @@ function prep(needTel){
   m+='👤 '+n+'\n';if(tel)m+='📞 '+tel+'\n';if(a)m+='🏠 '+a+'\n';if(maps)m+='📍 '+maps+'\n';if(rem)m+='📝 '+rem+'\n';
   return{m:m,n:n,a:a,tel:tel,maps:maps,t:s.t};
 }
-function send(){var o=prep(false);if(!o)return;var fin=o.m+(o.maps?'':'📍 Je vous envoie ma position.');logOrder('commande',fin,o.n,o.a,o.t,o.tel,o.maps);window.open(wa(fin),'_blank');}
+function send(){var o=prep(false);if(!o)return;var fin=o.m+(o.maps?'':'📍 Je vous envoie ma position.');window.open(wa(fin),'_blank');logOrderP('commande',fin,o.n,o.a,o.t,o.tel,o.maps).then(function(ok){if(!ok)alert('تعذّر تسجيل الطلب في النظام. تم فتح واتساب؛ أعد المحاولة أو اتصل بنا للتأكيد.');});}
 function sendDirect(){
   var o=prep(true);if(!o)return;
   var fin=o.m+'📞 À APPELER (sans WhatsApp)\n'+(o.maps?'':'📍 Position non partagée : demander l’adresse par téléphone.\n');
@@ -469,7 +539,7 @@ import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.2/firebase-ap
 import{getAuth,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,GoogleAuthProvider,signInWithPopup,signOut,sendPasswordResetEmail}from'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import{getFirestore,doc,getDoc,setDoc,addDoc,collection,query,where,getDocs,limit}from'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 var app=initializeApp({apiKey:'AIzaSyAt7Wn3ywa4KFyTy9LP7Iw1TI0oKRSMSwI',authDomain:'kallem-houssem-gestion.firebaseapp.com',projectId:'kallem-houssem-gestion',appId:'1:196054871580:web:b2ad1e217b9a7e759db9d9'});
-var au=getAuth(app),fdb=getFirestore(app,'default'),KH=window.KH={user:null,profile:null,ready:false};
+var au=getAuth(app),fdb=getFirestore(app),KH=window.KH={user:null,profile:null,ready:false};
 var M={'auth/invalid-credential':'Email ou mot de passe incorrect','auth/invalid-login-credentials':'Email ou mot de passe incorrect','auth/user-not-found':'Compte introuvable','auth/wrong-password':'Mot de passe incorrect','auth/email-already-in-use':'Cet email a déjà un compte','auth/weak-password':'Mot de passe trop court (6 caractères minimum)','auth/invalid-email':'Email invalide','auth/missing-password':'Entrez le mot de passe','auth/popup-closed-by-user':'Fenêtre fermée','auth/unauthorized-domain':'Domaine non autorisé dans Firebase','auth/operation-not-allowed':'Cette méthode n’est pas activée dans Firebase','auth/too-many-requests':'Trop d’essais, réessayez plus tard','auth/network-request-failed':'Pas de connexion internet'};
 function fr(e){return M[e&&e.code]||('Erreur : '+((e&&e.code)||(e&&e.message)||''));}
 KH.signIn=async function(a,b){try{await signInWithEmailAndPassword(au,a,b);return'';}catch(e){return fr(e);}};
@@ -481,6 +551,36 @@ KH.save=async function(p){try{await setDoc(doc(fdb,'clients',KH.user.uid),p);KH.
 KH.orders=async function(){try{var s=await getDocs(query(collection(fdb,'orders'),where('uid','==',KH.user.uid),limit(30))),a=[];s.forEach(function(d){var x=d.data();x.id=d.id;a.push(x);});a.sort(function(x,y){return((y.ts&&y.ts.seconds)||0)-((x.ts&&x.ts.seconds)||0);});return a;}catch(e){return[];}};
 KH.order=function(o){o.uid=KH.user.uid;o.ts=new Date();return addDoc(collection(fdb,'orders'),o);};
 onAuthStateChanged(au,async function(u){KH.user=u;KH.profile=null;if(u){try{var d=await getDoc(doc(fdb,'clients',u.uid));if(d.exists())KH.profile=d.data();}catch(e){}}KH.ready=true;if(window.onAuth)window.onAuth();});
+</script>
+<script>if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js").catch(()=>{}));}</script>
+
+<div id="jibli-install" role="dialog" aria-label="Installer Jibli" aria-live="polite">
+ <div class="ji-row"><img class="ji-icon" src="./icons/icon.svg" alt="Jibli"><div class="ji-copy"><b>هبّط Jibli في تلفونك 📲</b><small>ثبّت التطبيق وخليه ديما قدّامك، كيف أي تطبيق آخر.</small></div><button class="ji-close" id="jibli-install-close" aria-label="إغلاق">×</button></div>
+ <div class="ji-actions"><button class="ji-primary" id="jibli-install-action">تثبيت Jibli</button><button class="ji-later" id="jibli-install-later">موش توا</button></div>
+ <p class="ji-help" id="jibli-install-help" hidden></p>
+</div>
+<script>
+(function(){
+ const box=document.getElementById('jibli-install'),btn=document.getElementById('jibli-install-action'),later=document.getElementById('jibli-install-later'),close=document.getElementById('jibli-install-close'),help=document.getElementById('jibli-install-help');
+ if(!box||!btn)return;
+ let installEvent=null;
+ const standalone=()=>window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;
+ const dismissed=()=>{try{return localStorage.getItem('jibli-install-dismissed')==='1'}catch(e){return false}};
+ const hide=()=>box.classList.remove('show');
+ const show=()=>{if(!standalone()&&!dismissed())box.classList.add('show')};
+ if(standalone())return;
+ window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installEvent=e;show();btn.textContent='تثبيت Jibli';help.hidden=true;});
+ window.addEventListener('appinstalled',()=>{installEvent=null;hide();try{localStorage.setItem('jibli-install-dismissed','1')}catch(e){}});
+ btn.addEventListener('click',async()=>{
+  if(installEvent){installEvent.prompt();const choice=await installEvent.userChoice;installEvent=null;if(choice&&choice.outcome==='accepted')hide();return;}
+  const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);
+  help.hidden=false;
+  help.textContent=ios?'على iPhone: اضغط على زر المشاركة ⬆️ في Safari، وبعدها اختار “Add to Home Screen / Ajouter à l’écran d’accueil”، ثم اضغط Add.':'في Chrome: اضغط على ⋮ (الثلاث نقاط) ثم اختار “Install app / تثبيت التطبيق” أو “Add to Home screen / إضافة إلى الشاشة الرئيسية”.';
+ });
+ function dismiss(){hide();try{localStorage.setItem('jibli-install-dismissed','1')}catch(e){}}
+ later.addEventListener('click',dismiss);close.addEventListener('click',dismiss);
+ window.addEventListener('load',()=>setTimeout(show,900));
+})();
 </script>
 </body>
 </html>

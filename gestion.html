@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
-<title>Gestion – Houssem</title>
+<title>Jibli | Administration</title>
 <style>
 :root{box-sizing:border-box;--bg1:#061a45;--bg2:#0b5ed7;--card:rgba(255,255,255,.14);--acc:#5fd0ff;--ok:#25d366;--bad:#ff7b7b;--field:#fff;--ft:#0a2a6b;padding-top:env(safe-area-inset-top,0px)}
 *,*:before,*:after{box-sizing:inherit}
@@ -51,6 +51,9 @@ input,select,textarea{width:100%;padding:12px;border-radius:12px;border:0;font:i
 .note{font-size:.8rem;opacity:.8;margin:6px 0}
 textarea{min-height:70px}
 </style>
+<meta name="theme-color" content="#0b5ed7">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="./icons/icon.svg">
 </head>
 <body>
 <div id="app"></div>
@@ -58,10 +61,11 @@ textarea{min-height:70px}
 var KEY='kh_gestion_v1';
 var db={liv:[],fuel:[],chg:[],set:{vid:3000},pin:''};
 var FB={p:'kallem-houssem-gestion',k:'AIzaSyAt7Wn3ywa4KFyTy9LP7Iw1TI0oKRSMSwI'};
-var BASE='https://firestore.googleapis.com/v1/projects/'+FB.p+'/databases/default/documents';
-var auth={idToken:'',refresh:'',exp:0},logged=false,timer=null,sync='',orders=[],poll=null;
-try{var a0=JSON.parse(localStorage.getItem('kh_auth')||'null');if(a0&&a0.refresh)auth.refresh=a0.refresh;}catch(e){}
-function setAuth(j){auth.idToken=j.idToken||j.id_token;auth.refresh=j.refreshToken||j.refresh_token;auth.exp=Date.now()+((+(j.expiresIn||j.expires_in)||3600)-60)*1000;try{localStorage.setItem('kh_auth',JSON.stringify({refresh:auth.refresh}));}catch(e){}}
+var ADMIN_UID='f4vrNGRMPCZGXiVPLp6lg9BerZP2';
+var BASE='https://firestore.googleapis.com/v1/projects/'+FB.p+'/databases/(default)/documents';
+var auth={idToken:'',refresh:'',exp:0},logged=false,timer=null,sync='',orders=[],poll=null,couriers=[];
+try{var a0=JSON.parse(sessionStorage.getItem('kh_auth')||'null');if(a0&&a0.refresh)auth.refresh=a0.refresh;}catch(e){}
+function setAuth(j){var uid=j.localId||j.local_id||j.user_id;if(uid!==ADMIN_UID)throw new Error('unauthorized');auth.idToken=j.idToken||j.id_token;auth.refresh=j.refreshToken||j.refresh_token;auth.exp=Date.now()+((+(j.expiresIn||j.expires_in)||3600)-60)*1000;try{sessionStorage.setItem('kh_auth',JSON.stringify({refresh:auth.refresh}));}catch(e){}}
 async function token(){
   if(auth.idToken&&Date.now()<auth.exp)return auth.idToken;
   if(!auth.refresh)throw new Error('login');
@@ -82,6 +86,9 @@ async function loadDb(){
   try{var j=await fs('GET','/gestion/main');var d=JSON.parse(j.fields.data.stringValue);db=Object.assign({liv:[],fuel:[],chg:[],set:{vid:3000}},d);}
   catch(e){if(e.code!==404)throw e;}
 }
+async function loadCouriers(){var r=await fs('POST',':runQuery',{structuredQuery:{from:[{collectionId:'couriers'}],limit:100}});couriers=(r||[]).filter(function(x){return x.document;}).map(function(x){var f=x.document.fields||{};return{id:x.document.name.split('/').pop(),name:gv(f.name),email:gv(f.email),phone:gv(f.phone),status:gv(f.status)||'pending'};});}
+async function setCourierStatus(id,status){await fs('PATCH','/couriers/'+id+'?updateMask.fieldPaths=status',{fields:{status:{stringValue:status}}});await loadCouriers();render();}
+function courV(){return'<h1>👥 طلبات انضمام الليفرورات</h1><button class="btn s" onclick="loadCouriers().then(render)">🔄 تحديث</button>'+(couriers.length?couriers.map(function(x){return'<div class="oc"><b>'+esc(x.name||'Livreur')+'</b><div class="st">'+esc(x.email)+' · '+esc(x.phone)+'</div><p>الحالة: '+esc(x.status)+'</p>'+(x.status==='pending'?'<button class="btn" onclick="setCourierStatus(\''+x.id+'\',\'approved\')">✅ قبول</button>':'')+(x.status==='approved'?'<button class="btn s" onclick="setCourierStatus(\''+x.id+'\',\'disabled\')">⛔ تعطيل</button>':'')+(x.status==='disabled'?'<button class="btn" onclick="setCourierStatus(\''+x.id+'\',\'approved\')">إعادة التفعيل</button>':'')+'</div>';}).join(''):'<p class="note">ما فما حتى طلب انضمام.</p>');}
 async function loadOrders(){
   var r=await fs('POST',':runQuery',{structuredQuery:{from:[{collectionId:'orders'}],orderBy:[{field:{fieldPath:'ts'},direction:'DESCENDING'}],limit:50}});
   orders=(r||[]).filter(function(x){return x.document;}).map(function(x){var f=x.document.fields||{};return{id:x.document.name.split('/').pop(),nom:gv(f.nom),adr:gv(f.adr),tel:gv(f.tel),maps:gv(f.maps),text:gv(f.text),kind:gv(f.kind),status:gv(f.status)||'new',ts:gv(f.ts)};});
@@ -101,9 +108,9 @@ async function login(){
   var em=val('em'),pw=document.getElementById('pw').value;msg='Connexion…';render();
   try{var r=await fetch('https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key='+FB.k,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:em,password:pw,returnSecureToken:true})});
     var j=await r.json();if(!r.ok)throw new Error((j.error&&j.error.message)||'erreur');setAuth(j);msg='';await boot();}
-  catch(e){msg='Connexion refusée : '+e.message;logged=false;render();}
+  catch(e){msg=e.message==='unauthorized'?'Ce compte n’a pas les droits d’administration.':'Connexion refusée : '+e.message;logged=false;try{sessionStorage.removeItem('kh_auth');}catch(x){}auth={idToken:'',refresh:'',exp:0};render();}
 }
-function logout(){try{localStorage.removeItem('kh_auth');}catch(e){}auth={idToken:'',refresh:'',exp:0};logged=false;clearInterval(poll);msg='';render();}
+function logout(){try{sessionStorage.removeItem('kh_auth');}catch(e){}auth={idToken:'',refresh:'',exp:0};logged=false;clearInterval(poll);msg='';render();}
 var app=document.getElementById('app'),tab='cmd',pr='mois',msg='';
 var TYPES=['Vidange','Pneus','Réparation','Pièces','Assurance','Vignette','Contrôle technique','Lavage','Autre'];
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
@@ -312,11 +319,11 @@ function loginV(){
   return'<h1>🔒 Gestion – Houssem</h1><div class="box"><label>Email</label><input id="em" type="email" autocomplete="username"><label>Mot de passe</label><input id="pw" type="password" autocomplete="current-password"><button class="btn" onclick="login()">Se connecter</button></div><p class="note">'+esc(msg)+'</p>';
 }
 function cmdV(){
-  var N=orders.filter(function(o){return o.status==='new';}),A=orders.filter(function(o){return o.status==='accepted';}),O=orders.filter(function(o){return o.status==='done'||o.status==='cancel';});
+  var N=orders.filter(function(o){return o.status==='new';}),A=orders.filter(function(o){return o.status==='confirmed'||o.status==='accepted';}),O=orders.filter(function(o){return o.status==='done'||o.status==='cancel';});
   function card(o){
     var t=o.ts?new Date(o.ts).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'';
-    var st=o.status==='done'?'✅ Livrée':o.status==='cancel'?'✖ Annulée':o.status==='accepted'?'🛵 En cours':'🆕 Nouvelle';
-    var bt=o.status==='new'?'<div class="ac"><button class="btn" data-oa="'+o.id+'">✅ Accepter</button><button class="btn s" data-oc="'+o.id+'">✖</button></div>':o.status==='accepted'?'<div class="ac"><button class="btn" data-od="'+o.id+'">🛵 Livrée</button><button class="btn s" data-oc="'+o.id+'">✖</button></div>':'';
+    var st=o.status==='done'?'✅ Livrée':o.status==='cancel'?'✖ Annulée':o.status==='accepted'?'🛵 Avec livreur':o.status==='confirmed'?'✅ Confirmée · à attribuer':'🆕 Nouvelle';
+    var bt=o.status==='new'?'<div class="ac"><button class="btn" data-oa="'+o.id+'">✅ Confirmer</button><button class="btn s" data-oc="'+o.id+'">✖</button></div>':o.status==='confirmed'?'<div class="ac"><button class="btn" data-assign="'+o.id+'">🛵 Attribuer un livreur</button><button class="btn s" data-oc="'+o.id+'">✖</button></div>':o.status==='accepted'?'<div class="ac"><button class="btn" data-od="'+o.id+'">🛵 Livrée</button><button class="btn s" data-oc="'+o.id+'">✖</button><button class="btn s" data-assign="'+o.id+'">🔁 Changer livreur</button></div>':'';
     return'<div class="oc"><div class="st">'+st+(/À APPELER/.test(o.text)?' · 📞 À APPELER':'')+' · '+esc(t)+' · '+esc(o.kind==='colis'?'📦 Colis':'🛒 Commande')+'</div>'+(o.tel?'<div class="st">📞 <a href="tel:'+esc(o.tel)+'" style="color:#5fd0ff">'+esc(o.tel)+'</a></div>':'')+(/^https:\/\/maps\.google\.com\//.test(o.maps)?'<div class="st"><a href="'+esc(o.maps)+'" target="_blank" rel="noopener" style="color:#5fd0ff">📍 Ouvrir Google Maps</a></div>':'')+'<pre>'+esc(o.text)+'</pre>'+bt+'</div>';
   }
   return'<h1>🔔 Commandes</h1><button class="btn s" onclick="refresh()" style="margin-bottom:12px">🔄 Actualiser</button>'+(msg?'<div class="al">'+esc(msg)+'</div>':'')+
@@ -325,13 +332,16 @@ function cmdV(){
    (O.length?'<h2>Historique</h2>'+O.slice(0,20).map(card).join(''):'');
 }
 async function setSt(id,st){await fs('PATCH','/orders/'+id+'?updateMask.fieldPaths=status',{fields:{status:{stringValue:st}}});}
+async function assignCourier(id){try{if(!couriers.length)await loadCouriers();var ready=couriers.filter(function(x){return x.status==='approved';});if(!ready.length){alert('ما فما حتى ليفرور موافق عليه.');return;}var list=ready.map(function(x){return x.name+' — '+x.email;}).join('\\n');var email=prompt('اكتب Email متاع الليفرور:\\n'+list);if(!email)return;var d=ready.filter(function(x){return x.email.toLowerCase()===email.trim().toLowerCase();})[0];if(!d){alert('Email موش موجود في قائمة الليفرورات الموافق عليهم.');return;}await fs('PATCH','/orders/'+id+'?updateMask.fieldPaths=courierUid&updateMask.fieldPaths=status',{fields:{courierUid:{stringValue:d.id},status:{stringValue:'accepted'}}});await refresh();alert('تم تعيين الطلب لليفرور '+d.name);}catch(e){alert('تعذر تعيين الليفرور: '+e.message);}}
 function waNum(t){var d=String(t||'').replace(/\D/g,'');if(d.indexOf('00')===0)d=d.slice(2);if(d.length===8)d='216'+d;return d;}
 async function orderAccept(id){
   var o=orders.filter(function(x){return x.id===id;})[0];if(!o)return;
-  if(/À APPELER/.test(o.text)){alert('Client sans WhatsApp : appelez-le au '+(o.tel||'(numéro indiqué)'));}else if(o.tel&&waNum(o.tel).length>=10){
-    window.open('https://wa.me/'+waNum(o.tel)+'?text='+encodeURIComponent('Bonjour '+(o.nom||'')+' 👋\nVotre commande est acceptée ✅\nNotre livreur la prépare et arrive bientôt 🛵\n— Kallem Houssem Livraison'),'_blank');
-  }else alert('Pas de numéro pour ce client : la commande est acceptée sans message.');
-  try{await setSt(id,'accepted');await refresh();}catch(e){alert('Échec : '+e.message);}
+  try{
+    await setSt(id,'confirmed');
+    if(/À APPELER/.test(o.text)){alert('Commande confirmée. Appelez le client au '+(o.tel||'(numéro indiqué)')+' puis attribuez un livreur.');}
+    else if(o.tel&&waNum(o.tel).length>=10){window.open('https://wa.me/'+waNum(o.tel)+'?text='+encodeURIComponent('Bonjour '+(o.nom||'')+' 👋\nVotre commande Jibli est confirmée ✅ Nous préparons votre livraison et nous vous attribuons un livreur.\n— Jibli'),'_blank');}
+    await refresh();
+  }catch(e){alert('Échec : '+e.message);}
 }
 async function orderDone(id){
   var o=orders.filter(function(x){return x.id===id;})[0];if(!o)return;
@@ -340,14 +350,14 @@ async function orderDone(id){
   try{await setSt(id,'done');}catch(e){alert('Échec : '+e.message);return;}
   db.liv.push({id:Date.now(),d:today(),m:m,km:0,n:(o.nom||'')+' '+(o.adr||'')});save();await refresh();
 }
-async function orderCancel(id){if(!confirm('Annuler cette commande ?'))return;try{await setSt(id,'cancel');await refresh();}catch(e){alert('Échec : '+e.message);}}
+async function orderCancel(id){if(!confirm('Annuler cette commande ?'))return;try{await fs('PATCH','/orders/'+id+'?updateMask.fieldPaths=status&updateMask.fieldPaths=courierUid',{fields:{status:{stringValue:'cancel'},courierUid:{stringValue:''}}});await refresh();}catch(e){alert('Échec : '+e.message);}}
 function nav(){
-  var T=[['cmd','🔔','Commandes'],['sum','📈','Rapport'],['liv','🛵','Livraisons'],['fuel','⛽','Carburant'],['chg','🔧','Charges'],['cat','📚','Catalogue']];
+  var T=[['cmd','🔔','Commandes'],['sum','📈','Rapport'],['liv','🛵','Livraisons'],['fuel','⛽','Carburant'],['chg','🔧','Charges'],['cat','📚','Catalogue'],['cour','👥','Livreurs']];
   return'<nav class="nv">'+T.map(function(t){return'<button data-t="'+t[0]+'" class="'+(tab===t[0]?'on':'')+'">'+t[1]+(t[0]==='cmd'&&newN()?'<b class="bd">'+newN()+'</b>':'')+'<small>'+t[2]+'</small></button>';}).join('')+'</nav>';
 }
 function render(){
   if(!logged){app.innerHTML=loginV();return;}
-  var h=tab==='cat'?catV():tab==='cmd'?cmdV():tab==='sum'?summary():tab==='liv'?livV():tab==='fuel'?fuelV():chgV();
+  var h=tab==='cat'?catV():tab==='cmd'?cmdV():tab==='sum'?summary():tab==='liv'?livV():tab==='fuel'?fuelV():tab==='cour'?courV():chgV();
   app.innerHTML=h+nav();
 }
 function ok(v){return isFinite(v)&&v>0;}
@@ -368,20 +378,22 @@ function restore(){
   catch(e){alert('Sauvegarde invalide');}
 }
 app.addEventListener('click',function(e){
-  var t=e.target.closest('[data-t],[data-pr],[data-del],[data-od],[data-oc],[data-oa],[data-ro],[data-re],[data-se],[data-rm]');if(!t)return;var d=t.dataset;
+  var t=e.target.closest('[data-t],[data-pr],[data-del],[data-od],[data-oc],[data-oa],[data-ro],[data-re],[data-se],[data-rm],[data-assign]');if(!t)return;var d=t.dataset;
   if(d.oa){orderAccept(d.oa);return;}
+  if(d.assign){assignCourier(d.assign);return;}
   if(d.ro){toggleOpen(d.ro);return;}
   if(d.re){editRe(d.re);return;}
   if(d.se){editShop(d.se);return;}
   if(d.rm!==undefined){rmRow(+d.rm);return;}
   if(d.od){orderDone(d.od);return;}
   if(d.oc){orderCancel(d.oc);return;}
-  if(d.t){tab=d.t;render();window.scrollTo(0,0);if(tab==='cat'&&!cg.loaded)loadCat().then(render,function(e){msg='Catalogue : '+e.message;cg.loaded=true;render();});return;}
+  if(d.t){tab=d.t;render();window.scrollTo(0,0);if(tab==='cat'&&!cg.loaded)loadCat().then(render,function(e){msg='Catalogue : '+e.message;cg.loaded=true;render();});if(tab==='cour')loadCouriers().then(render,function(e){msg='Livreurs : '+e.message;render();});return;}
   if(d.pr){pr=d.pr;render();return;}
   if(d.del){if(!confirm('Supprimer cette ligne ?'))return;var p=d.del.split('|');db[p[0]]=db[p[0]].filter(function(x){return String(x.id)!==p[1];});save();render();}
 });
 app.innerHTML='<h1>Chargement…</h1>';
 boot();
 </script>
+<script>if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js").catch(()=>{}));}</script>
 </body>
 </html>

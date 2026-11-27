@@ -1,49 +1,43 @@
-<!DOCTYPE html>
-<html lang="fr">
+<!doctype html>
+<html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="robots" content="noindex,nofollow">
-<title>Test commandes</title>
-<style>
-body{margin:0;padding:20px;background:#061a45;color:#fff;font-family:system-ui,sans-serif}
-button{width:100%;padding:16px;border:0;border-radius:14px;background:#25d366;color:#fff;font-size:1.05rem;font-weight:700;cursor:pointer}
-pre{white-space:pre-wrap;word-break:break-word;background:rgba(255,255,255,.12);border-radius:12px;padding:12px;font:inherit;line-height:1.6}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Jibli read-only checks</title>
+  <style>
+    body{max-width:42rem;margin:2rem auto;padding:0 1rem;font:16px system-ui,sans-serif;color:#102447}
+    li{margin:.7rem 0}.ok{color:#137333}.fail{color:#b3261e}
+  </style>
 </head>
 <body>
-<h2>🔧 Test des commandes</h2>
-<p>Appuyez sur le bouton, puis envoyez-moi une capture d’écran du résultat.</p>
-<button id="b" type="button">Lancer le test</button>
-<pre id="o"></pre>
-<script>
-var P='kallem-houssem-gestion',K='AIzaSyAt7Wn3ywa4KFyTy9LP7Iw1TI0oKRSMSwI';
-var out=document.getElementById('o');
-function line(t){out.textContent+=t+'\n';}
-document.getElementById('b').addEventListener('click',async function(){
-  out.textContent='';
-  line('1) Fichier index.html en ligne');
-  try{
-    var r=await fetch('index.html?'+Date.now()),x=await r.text();
-    line('   HTTP '+r.status);
-    line('   contient logOrder : '+(x.indexOf('logOrder')>=0?'OUI ✅':'NON ❌ (ancienne version, il faut re-uploader index.html)'));
-    line('   contient Firebase compte : '+(x.indexOf('firebase-auth.js')>=0?'OUI ✅':'NON ❌'));
-  }catch(e){line('   erreur : '+e.message);}
-  line('');
-  line('2) Écriture dans Firestore');
-  var ids=['(default)','default'];
-  for(var k=0;k<ids.length;k++){
-    line('   Base "'+ids[k]+'" :');
-    try{
-      var r2=await fetch('https://firestore.googleapis.com/v1/projects/'+P+'/databases/'+encodeURIComponent(ids[k])+'/documents/orders?key='+K,{
-        method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({fields:{kind:{stringValue:'test'},nom:{stringValue:'Test'},adr:{stringValue:'Test'},text:{stringValue:'TEST – à annuler'},total:{doubleValue:0},status:{stringValue:'new'},ts:{timestampValue:new Date().toISOString()}}})
-      });
-      var j=await r2.json();
-      line('     HTTP '+r2.status+(j.error?' ❌ '+j.error.status+' : '+String(j.error.message).slice(0,90):' ✅ commande test créée'));
-    }catch(e){line('     erreur : '+e.message);}
-  }
-});
-</script>
+  <h1>Jibli read-only checks</h1>
+  <p>These checks only read the app shell. They do not sign in, create orders, or write to Firebase.</p>
+  <ul id="results"><li>Checking files…</li></ul>
+  <script>
+    (async function(){
+      const files=['./index.html','./livreur.html','./gestion.html','./service-worker.js','./manifest.webmanifest'];
+      const results=document.getElementById('results');
+      results.replaceChildren();
+      for(const file of files){
+        const row=document.createElement('li');
+        try{
+          const response=await fetch(file,{cache:'no-store'});
+          if(!response.ok)throw new Error('HTTP '+response.status);
+          if(file.endsWith('.webmanifest'))await response.json();
+          row.className='ok';row.textContent='OK · '+file;
+        }catch(error){row.className='fail';row.textContent='Failed · '+file+' · '+error.message;}
+        results.append(row);
+      }
+      const source=await fetch('./index.html',{cache:'no-store'}).then(r=>r.text()).catch(()=> '');
+      const row=document.createElement('li');
+      if(source.includes("projectId:'kallem-houssem-gestion'")||source.includes('projectId:"kallem-houssem-gestion"')){
+        row.className='ok';row.textContent='OK · storefront points to the expected Firebase project';
+      }else{
+        row.className='fail';row.textContent='Failed · storefront Firebase project ID was not found';
+      }
+      results.append(row);
+    })();
+  </script>
 </body>
 </html>
